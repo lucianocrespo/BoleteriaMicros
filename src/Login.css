@@ -1,0 +1,107 @@
+/* Colores de inspiración: Mantener la consistencia visual */
+:root {
+    --color-fondo-principal: #f9f9f9; /* Fondo muy claro */
+    --color-tarjeta: #ffffff; /* Fondo blanco para el formulario */
+    --color-borde: #dbdbdb; /* Gris muy claro para bordes */
+    --color-texto: #262626; /* Negro suave para el texto */
+    --color-acento-principal: #0095f6; /* Azul para la acción principal (Entrar) */
+    --color-acento-secundario: #60c550; /* Verde para la acción secundaria (Registrarse) */
+    --sombra-sutil: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/* 1. Contenedor Principal */
+.login-container {
+    background-color: var(--color-fondo-principal);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Centrar verticalmente en la pantalla */
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--color-texto);
+}
+
+/* 2. Tarjeta del Formulario */
+.login-form-card {
+    background-color: var(--color-tarjeta);
+    padding: 40px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px; /* Bordes suaves */
+    box-shadow: var(--sombra-sutil);
+    width: 100%;
+    max-width: 350px; /* Ancho típico para formularios de login */
+}
+
+/* 3. Título */
+.login-form-card h2 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+/* 4. Formulario y Etiquetas (Layout) */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; 
+}
+
+.login-form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 4px; 
+}
+
+/* 5. Inputs */
+.login-form input {
+    margin-top: 4px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-borde);
+    border-radius: 4px;
+    background-color: var(--color-fondo-principal);
+    font-size: 16px;
+    color: var(--color-texto);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-form input:focus {
+    border-color: var(--color-acento-principal);
+    outline: none;
+    box-shadow: 0 0 0 1px var(--color-acento-principal);
+}
+
+/* 6. Botones */
+.login-form button {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 4px; 
+}
+
+/* Botón Principal (Entrar) */
+.login-form .btn-entrar {
+    background-color: var(--color-acento-principal);
+    color: var(--color-tarjeta);
+    margin-top: 16px; /* Separación desde los inputs */
+}
+
+.login-form .btn-entrar:hover {
+    background-color: #007ac7; 
+}
+
+/* Botón Secundario (Registrarse) */
+.login-form .btn-registrar {
+    background-color: var(--color-acento-secundario);
+    color: var(--color-tarjeta);
+    margin-top: 8px; 
+}
+
+.login-form .btn-registrar:hover {
+    background-color: #4da44d;
+}

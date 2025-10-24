@@ -1,0 +1,107 @@
+/* Colores de inspiración: Neutros, limpios y un color de acento */
+:root {
+    --color-fondo-principal: #f9f9f9; /* Fondo muy claro, similar al de una app */
+    --color-tarjeta: #ffffff; /* Fondo blanco para el formulario */
+    --color-borde: #dbdbdb; /* Gris muy claro para bordes */
+    --color-texto: #262626; /* Negro suave para el texto */
+    --color-acento: #0095f6; /* Azul brillante, similar al botón de acción de Instagram */
+    --sombra-sutil: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/* 1. Contenedor Principal (Simula el cuerpo de la aplicación) */
+.viajar-container {
+    /* Usar un fondo que no sea blanco puro */
+    background-color: var(--color-fondo-principal);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 60px; /* Separación superior */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--color-texto);
+}
+
+/* 2. Tarjeta del Formulario (El 'Container' que contendrá los inputs) */
+.viajar-form-card {
+    background-color: var(--color-tarjeta);
+    padding: 40px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px; /* Bordes suaves */
+    box-shadow: var(--sombra-sutil); /* Sombra sutil para efecto de "flotación" */
+    width: 100%;
+    max-width: 400px; /* Limita el ancho del formulario */
+}
+
+/* 3. Título */
+.viajar-form-card h2 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-weight: 600; /* Un poco más de peso */
+    color: var(--color-texto);
+}
+
+/* 4. Formulario y Etiquetas (Layout) */
+.viajar-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Espaciado entre elementos del formulario */
+}
+
+.viajar-form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500; /* Texto de la etiqueta con peso medio */
+    font-size: 14px;
+    margin-bottom: 4px; /* Separación de la etiqueta al input */
+}
+
+/* 5. Inputs (El estilo clave para la estética moderna) */
+.viajar-form input {
+    margin-top: 4px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-borde);
+    border-radius: 4px; /* Bordes redondeados */
+    background-color: var(--color-fondo-principal); /* Fondo suave en los inputs */
+    font-size: 16px;
+    color: var(--color-texto);
+    transition: border-color 0.2s, box-shadow 0.2s; /* Transiciones suaves */
+}
+
+.viajar-form input:focus {
+    border-color: var(--color-acento); /* Borde de color de acento al enfocar */
+    outline: none; /* Eliminar el contorno por defecto del navegador */
+    box-shadow: 0 0 0 1px var(--color-acento);
+}
+
+/* 6. Botones */
+.viajar-form button {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 4px; /* Separación del input anterior */
+}
+
+/* Botón Principal (Buscar) */
+.viajar-form .btn-principal {
+    background-color: var(--color-acento);
+    color: var(--color-tarjeta); /* Texto blanco */
+}
+
+.viajar-form .btn-principal:hover {
+    background-color: #007ac7; /* Azul ligeramente más oscuro al pasar el mouse */
+}
+
+/* Botón Secundario (Volver) */
+.viajar-form .btn-secundario {
+    background-color: transparent;
+    color: var(--color-acento);
+    border: 1px solid var(--color-acento);
+    margin-top: 8px; /* Más separación entre botones */
+}
+
+.viajar-form .btn-secundario:hover {
+    background-color: #f0f8ff; /* Fondo muy suave al pasar el mouse */
+}

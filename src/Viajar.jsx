@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './Viajar.css';
 
 function Viajar() {
   const [origen, setOrigen] = useState('');
@@ -14,14 +15,16 @@ function Viajar() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 60 }}>
+    <div className="viajar-container">
+      <div className="viajar-from-card">
       <h2>Buscar Viaje</h2>
-      <form style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 300 }}>
+
+      <form className="viajar-form" /*onSubmit={handleBuscar}*/>
         <label>
           Origen:
           <input type="text" value={origen} onChange={e => setOrigen(e.target.value)} placeholder=" Ciudad de origen" 
-          list="ciudades"/>
-          <datalist id="ciudades">
+          list="ciudades-list"/>
+          <datalist id="ciudades-list">
             <option value="Trenque Lauquen" />
             <option value="Juan Jose Paso" />
             <option value="Francisco Madero" />
@@ -36,27 +39,18 @@ function Viajar() {
         <label>
           Destino:
           <input type="text" value={destino} onChange={e => setDestino(e.target.value)} placeholder=" Ciudad de destino" 
-          list="ciudades"/>
-          <datalist id="ciudades">
-            <option value="Trenque Lauquen" />
-            <option value="Juan Jose Paso" />
-            <option value="Francisco Madero" />
-            <option value="Pehuajo" />
-            <option value="Carlos Casares" />
-            <option value="9 De Julio" />
-            <option value="Junin" />
-            <option value="Bragado" />
-            <option value="Buenos Aires" />
-          </datalist>
+          list="ciudades-list"/>
         </label>
-        
+
         <label>
           Día:
           <input type="date" value={dia} onChange={e => setDia(e.target.value)} />
         </label>
-        <button type="button" style={{ marginTop: 16 }} onClick={handleBuscar}>Buscar</button>
-        <button type="button" onClick={() => navigate(-1)} style={{ marginTop: 16 }}>Volver</button>
+
+        <button type="button" className="btn-principal" onClick={handleBuscar}>Buscar</button>
+        <button type="button" className="btn-secundario" onClick={() => navigate(-1)}>Volver</button>
       </form>
+      </div>
     </div>
   );
 };

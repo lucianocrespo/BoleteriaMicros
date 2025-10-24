@@ -16,7 +16,7 @@ const Registro = ({ onBack }) => {
     }
     if (nombre && mail && usuario && contrasena) {
       alert('Registro exitoso!');
-      navigate('/');
+      navigate('/MenuViaje');
     } else {
       alert('Es necesario completar todos los campos');
     }
