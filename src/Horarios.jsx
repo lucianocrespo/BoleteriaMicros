@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import './Horarios.css';
 
 const horarios = {
   'Trenque Lauquen-Juan Jose Paso': ['08:00'],
@@ -53,22 +54,29 @@ const Horarios = () => {
   const horariosDisponibles = horarios[clave] || [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 60 }}>
+  <div className="horarios-container">
+    <div className="horarios-card">
       <h2>Horarios disponibles</h2>
-      <p>
-        Origen: {origen}<br />
-        Destino: {destino}<br />
-        Día: {dia}
-      </p>
+      <div className="resumen-viaje">
+        <p>
+          Origen: {origen}<br />
+          Destino: {destino}<br />
+          Día: {dia}
+        </p>
+      </div>
+
+      <div className="tabla-horarios">  {/*///////////////////////////////*/}
       <ul>
         {horariosDisponibles.map(h => (
           <li key={h}>
-            {h} <button onClick={() => handleSeleccionar(h)}>Seleccionar</button>
+            {h} <button className="btn-seleccionar" onClick={() => handleSeleccionar(h)}>Seleccionar</button>
           </li>
         ))}
       </ul>
-      <button type="button" onClick={() => navigate(-1)} style={{ marginTop: 16 }}>Volver</button>
+      </div>
+      <button type="button" className="btn-volver" onClick={() => navigate(-1)} >Volver</button>
     </div>
+  </div>
   );
 };
 

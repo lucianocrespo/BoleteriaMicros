@@ -1,0 +1,164 @@
+:root {
+    --color-fondo-principal: #f9f9f9;
+    --color-tarjeta: #ffffff;
+    --color-borde: #dbdbdb;
+    --color-texto: #262626;
+    --color-acento-principal: #0095f6; 
+    --color-acento-secundario: #6c757d; 
+    --color-asiento-disponible: #c8e6c9; 
+    --color-asiento-ocupado: #ffcdd2; 
+    --color-asiento-seleccionado: #64b5f6; 
+    --sombra-sutil: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.asientos-container {
+    background-color: var(--color-fondo-principal);
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--color-texto);
+}
+
+.asientos-card {
+    background-color: var(--color-tarjeta);
+    padding: 30px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    box-shadow: var(--sombra-sutil);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.asientos-card h2 {
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.resumen-viaje-asientos {
+    margin-bottom: 25px;
+    padding: 10px;
+    border-bottom: 1px solid var(--color-borde);
+    font-size: 0.95em;
+}
+
+
+.layout-bus {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) 0.5fr repeat(2, 1fr); 
+    gap: 10px 5px; /* Espaciado entre filas y columnas */
+    width: 100%;
+    margin: 30px auto;
+    padding: 15px;
+    border: 2px solid var(--color-borde);
+    border-radius: 10px;
+    background-color: #f0f0f0; 
+}
+
+.pasillo-spacer {
+    /* No tiene estilos, solo actúa como un espacio vacío en el grid */
+}
+
+.asiento-btn {
+    width: 100%; 
+    padding: 15px 0;
+    margin: 0;
+    border: 1px solid var(--color-borde);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+
+.asiento-disponible {
+    background-color: var(--color-asiento-disponible);
+    color: var(--color-texto);
+}
+
+.asiento-disponible:hover {
+    background-color: #a5d6a7;
+    transform: scale(1.05);
+}
+
+.asiento-ocupado {
+    background-color: var(--color-asiento-ocupado);
+    color: #a0a0a0;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.asiento-seleccionado {
+    background-color: var(--color-acento-principal);
+    color: white;
+    border-color: #007ac7;
+}
+
+.leyenda-asientos {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+.leyenda-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+.leyenda-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+.asientos-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-continuar {
+    background-color: var(--color-acento-principal);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-continuar:hover:not(:disabled) {
+    background-color: #007ac7;
+}
+
+.btn-continuar:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.btn-volver {
+    background-color: transparent;
+    color: var(--color-acento-secundario);
+    border: 1px solid var(--color-acento-secundario);
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-volver:hover {
+    background-color: #f0f0f0;
+}
