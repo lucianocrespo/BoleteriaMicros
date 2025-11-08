@@ -1,88 +1,88 @@
-.login-container {
+.registro-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    background-color: #e6f0ff; /* Fondo azul suave */
+    background-color: #f0f4f8; /* Fondo suave */
 }
 
-.login-form-card {
+.registro-form-card {
     background: #ffffff;
     padding: 35px;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    max-width: 400px;
+    max-width: 450px;
     width: 100%;
     text-align: center;
 }
 
-.login-form-card h2 {
+.registro-form-card h2 {
     color: #004d99;
     margin-bottom: 30px;
     font-size: 1.8em;
     font-weight: 700;
 }
 
-.login-form label {
+.registro-form label {
     display: block;
     text-align: left;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     font-weight: 600;
     color: #333;
 }
 
-.login-form input {
+.registro-form input {
     width: 100%;
     padding: 12px;
-    margin-top: 8px;
+    margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 8px;
     box-sizing: border-box;
-    transition: border-color 0.3s;
 }
 
-.login-form input:focus {
-    border-color: #007bff;
-    outline: none;
-}
-
-.login-actions {
+.registro-actions {
     margin-top: 25px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
-.btn-entrar {
+.btn-registrar,
+.btn-volver {
     padding: 12px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    background-color: #007bff; /* Azul primario */
-    color: white;
     font-size: 1em;
     font-weight: 700;
     transition: background-color 0.3s;
 }
 
-.btn-entrar:hover {
-    background-color: #0056b3;
-}
-
-.link-registrar {
-    background: none;
-    border: 2px solid #28a745; /* Verde para el registro */
-    color: #28a745;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.link-registrar:hover {
-    background-color: #28a745;
+.btn-registrar {
+    background-color: #28a745; /* Verde para registrar */
     color: white;
+}
+
+.btn-registrar:hover:not(:disabled) {
+    background-color: #1e7e34;
+}
+
+.btn-volver {
+    background-color: #6c757d; /* Gris para volver */
+    color: white;
+}
+
+.btn-volver:hover:not(:disabled) {
+    background-color: #5a6268;
+}
+
+.error-message {
+    padding: 10px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-weight: 500;
 }

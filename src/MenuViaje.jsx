@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import './MenuViaje.css';
+import provbagoogleearth from './assets/provbagoogleearth.png';
 
 
 const MenuViaje = () => {
@@ -23,7 +24,11 @@ const MenuViaje = () => {
           onClick={() => navigate('/viajar')}>Viajar
         </button>
       </main>
+      <div className="imagen">
+         <img src={provbagoogleearth} alt="Imagen de Viaje" />
+      </div>
     </div>
+
   );
 };
 

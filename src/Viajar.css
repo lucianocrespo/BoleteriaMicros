@@ -55,8 +55,9 @@
     margin-bottom: 4px; /* Separación de la etiqueta al input */
 }
 
-/* 5. Inputs (El estilo clave para la estética moderna) */
+/* 5. Inputs */
 .viajar-form input {
+    width: 100%;
     margin-top: 4px;
     padding: 10px 12px;
     border: 1px solid var(--color-borde);

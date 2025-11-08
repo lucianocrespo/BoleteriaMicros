@@ -1,88 +1,116 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import './Pago.css';
 
 function Pago() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { origen, destino, dia, horario, asiento } = location.state || {};
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { origen, destino, dia, horario, asiento } = location.state || {};
 
-  const [nombre, setNombre] = useState('');
-  const [numeroTarjeta, setNumeroTarjeta] = useState('');
-  const [fechaExpiracion, setFechaExpiracion] = useState('');
-  const [codigoSeguridad, setCodigoSeguridad] = useState('');
-  const [mensaje, setMensaje] = useState('');
+    const [nombre, setNombre] = useState('');
+    const [numeroTarjeta, setNumeroTarjeta] = useState('');
+    const [fechaExpiracion, setFechaExpiracion] = useState('');
+    const [codigoSeguridad, setCodigoSeguridad] = useState('');
+    const [mensaje, setMensaje] = useState('');
+    const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Aca se puede agregar la lógica para procesar el pago
-    setMensaje('Pago realizado'); // Establece el mensaje de éxito
-    setTimeout(() => {
-      navigate('/'); // Redirige a la página principal después de 2 segundos
-    }, 2000);
-  };
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setMensaje('');
 
-  return (
-    <div style={{ maxWidth: '400px', margin: '0 auto', padding: '20px' }}>
-      <h2>Formulario de Pago</h2>
-      <p>
-        Origen: {origen}<br />
-        Destino: {destino}<br />
-        Día: {dia}<br />
-        Horario: {horario}<br />
-        Asiento: {asiento}
-      </p>
-      {mensaje && <div style={{ color: 'green', marginBottom: '20px' }}>{mensaje}</div>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>
-            Nombre en la tarjeta:
-            <input
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-            />
-          </label>
+        // Lógica simulada de pago
+        // (Aca es donde más tarde haríamos el setDoc para guardar la reserva)
+        
+        setTimeout(() => {
+            // El mensaje de éxito se muestra brevemente
+            setMensaje('¡Pago realizado con éxito! Redirigiendo...'); 
+            setLoading(false);
+            
+            // Redirige después de que el mensaje de éxito es visible
+            setTimeout(() => {
+                navigate('/MenuViaje'); 
+            }, 1000); 
+
+        }, 2000); // Simula el tiempo de procesamiento de pago
+    };
+
+    return (
+        <div className="pago-container">
+            <div className="pago-card">
+                <h2>Formulario de Pago</h2>
+                
+                <div className="resumen-viaje">
+                    <h4>Detalles del Viaje</h4>
+                    <p>
+                        Origen: <strong>{origen || 'N/A'}</strong><br />
+                        Destino: <strong>{destino || 'N/A'}</strong><br />
+                        Día: <strong>{dia || 'N/A'}</strong><br />
+                        Horario: <strong>{horario || 'N/A'}</strong><br />
+                        Asiento: <strong>{asiento || 'N/A'}</strong>
+                    </p>
+                </div>
+                
+                {mensaje && <div className={`mensaje-pago ${mensaje.includes('éxito') ? 'success' : 'error'}`}>{mensaje}</div>}
+                
+                <form className="pago-form" onSubmit={handleSubmit}>
+                    <label>
+                        Nombre en la tarjeta:
+                        <input
+                            type="text"
+                            value={nombre}
+                            onChange={(e) => setNombre(e.target.value)}
+                            required
+                            placeholder="Nombre del titular"
+                        />
+                    </label>
+                    <label>
+                        Número de tarjeta:
+                        <input
+                            type="text"
+                            value={numeroTarjeta}
+                            onChange={(e) => setNumeroTarjeta(e.target.value)}
+                            required
+                            placeholder="xxxx xxxx xxxx xxxx"
+                            maxLength="19"
+                        />
+                    </label>
+                    
+                    <div className="grid-2-cols">
+                        <label>
+                            Fecha de expiración:
+                            <input
+                                type="month"
+                                value={fechaExpiracion}
+                                onChange={(e) => setFechaExpiracion(e.target.value)}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Código de seguridad (CVV):
+                            <input
+                                type="text"
+                                value={codigoSeguridad}
+                                onChange={(e) => setCodigoSeguridad(e.target.value)}
+                                required
+                                placeholder="CVV"
+                                maxLength="4"
+                            />
+                        </label>
+                    </div>
+                    
+                    <div className="pago-actions">
+                        <button type="submit" className="btn-pagar" disabled={loading}>
+                            {loading ? 'Procesando Pago...' : 'Realizar Pago'}
+                        </button>
+                        <button type="button" className="btn-volver" onClick={() => navigate(-1)} disabled={loading}>
+                            Volver
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div>
-          <label>
-            Número de tarjeta:
-            <input
-              type="text"
-              value={numeroTarjeta}
-              onChange={(e) => setNumeroTarjeta(e.target.value)}
-              required
-              placeholder="1234 5678 9012 3456"
-            />
-          </label>
-        </div>
-        <div>
-          <label>
-            Fecha de expiración:
-            <input
-              type="month"
-              value={fechaExpiracion}
-              onChange={(e) => setFechaExpiracion(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-        <div>
-          <label>
-            Código de seguridad:
-            <input
-              type="text"
-              value={codigoSeguridad}
-              onChange={(e) => setCodigoSeguridad(e.target.value)}
-              required
-              placeholder="123"
-            />
-          </label>
-        </div>
-        <button type="submit">Realizar Pago</button>
-      </form>
-    </div>
-  );
+    );
 }
 
 export default Pago;

@@ -1,102 +1,99 @@
-/* Colores y Variables (Consistencia visual) */
-:root {
-    --color-fondo-principal: #f9f9f9;
-    --color-tarjeta: #ffffff;
-    --color-borde: #dbdbdb;
-    --color-texto: #262626;
-    --color-acento-principal: #0095f6; /* Azul para el botón "Seleccionar" */
-    --color-acento-secundario: #6c757d; /* Gris para el botón "Volver" */
-    --sombra-sutil: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-}
-
-/* 1. Contenedor Principal (Centrado) */
+/* Estilos generales para centrar el contenido */
 .horarios-container {
-    background-color: var(--color-fondo-principal);
-    min-height: 100vh;
-    width: 100%;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    padding: 60px 20px;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    color: var(--color-texto);
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f0f4f8; /* Fondo suave */
 }
 
-/* 2. Tarjeta principal que contendrá todos los elementos */
+/* Estilo de la tarjeta principal */
 .horarios-card {
-    background-color: var(--color-tarjeta);
+    background: #ffffff;
     padding: 30px;
-    border: 1px solid var(--color-borde);
-    border-radius: 8px;
-    box-shadow: var(--sombra-sutil);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
     width: 100%;
-    max-width: 700px; /* Ancho cómodo para la tabla */
     text-align: center;
 }
 
-/* 3. Título */
 .horarios-card h2 {
-    margin-bottom: 10px;
-    font-weight: 600;
+    color: #004d99; /* Azul corporativo */
+    margin-bottom: 20px;
+    font-weight: 700;
 }
 
-/* 4. Resumen del Viaje (Origen, Destino, Día) */
+/* Estilos del resumen del viaje */
 .resumen-viaje {
-    margin-bottom: 25px;
-    padding: 10px;
-    border-bottom: 1px solid var(--color-borde);
-    font-size: 1.05em;
+    background-color: #e6f0ff;
+    border: 1px solid #cce0ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 1.1em;
     line-height: 1.6;
-}
-
-/* 5. Tabla de Horarios */
-.tabla-horarios {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 25px;
-}
-
-.tabla-horarios th, .tabla-horarios td {
-    padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid #eeeeee; /* Línea de separación sutil */
 }
 
-.tabla-horarios th {
-    background-color: #f7f7f7;
+/* Estilos de la tabla/lista de horarios */
+.tabla-horarios ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tabla-horarios li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border-left: 5px solid #007bff; /* Detalle de color */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     font-weight: 600;
-    color: var(--color-texto);
+    color: #333;
 }
 
-/* 6. Botones */
-.btn-seleccionar {
-    background-color: var(--color-acento-principal);
-    color: white;
-    padding: 8px 15px;
+/* Estilo de los botones */
+.btn-seleccionar,
+.btn-volver {
+    padding: 10px 15px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: background-color 0.2s;
+    transition: background-color 0.3s ease;
+}
+
+.btn-seleccionar {
+    background-color: #28a745; /* Verde para seleccionar */
+    color: white;
 }
 
 .btn-seleccionar:hover {
-    background-color: #007ac7;
+    background-color: #1e7e34;
 }
 
 .btn-volver {
-    background-color: transparent;
-    color: var(--color-acento-secundario);
-    border: 1px solid var(--color-acento-secundario);
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s;
     margin-top: 20px;
+    background-color: #6c757d; /* Gris para volver */
+    color: white;
 }
 
 .btn-volver:hover {
-    background-color: #f0f0f0;
+    background-color: #5a6268;
+}
+
+/* Mensajes de estado */
+.loading-message, .no-data-message {
+    padding: 20px;
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    margin: 20px 0;
 }

@@ -1,83 +1,113 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './Horarios.css';
+import { db } from './firebase-config'; // Importar la instancia de la base de datos
+import { doc, getDoc } from 'firebase/firestore'; // Importar doc y getDoc para documentos únicos
+import './Horarios.css'; 
 
-const horarios = {
-  'Trenque Lauquen-Juan Jose Paso': ['08:00'],
-  'Trenque Lauquen-Francisco Madero': ['08:00'],
-  'Trenque Lauquen-Pehuajo': ['08:00'],
-  'Trenque Lauquen-Carlos Casares': ['08:00'],
-  'Trenque Lauquen-9 De Julio': ['08:00'],
-  'Trenque Lauquen-Junin': ['08:00'],
-  'Trenque Lauquen-Bragado': ['08:00'],
-  'Trenque Lauquen-Buenos Aires': ['08:00'],
-  'Juan Jose Paso-Francisco Madero': ['08:30'],
-  'Juan Jose Paso-Pehuajo': ['08:30'],
-  'Juan Jose Paso-Carlos Casares': ['08:30'],
-  'Juan Jose Paso-9 De Julio': ['08:30'],
-  'Juan Jose Paso-Junin': ['08:30'],
-  'Juan Jose Paso-Bragado': ['08:30'],
-  'Juan Jose Paso-Buenos Aires': ['08:30'],
-  'Francisco Madero-Pehuajo': ['08:50'],
-  'Francisco Madero-Carlos Casares': ['08:50'],
-  'Francisco Madero-9 De Julio': ['08:50'],
-  'Francisco Madero-Junin': ['08:50'],
-  'Francisco Madero-Bragado': ['08:50'],
-  'Francisco Madero-Buenos Aires': ['08:50'],
-  'Pehuajo-Carlos Casares': ['09:10'],
-  'Pehuajo-9 De Julio': ['09:10'],
-  'Pehuajo-Junin': ['09:10'],
-  'Pehuajo-Bragado': ['09:10'],
-  'Pehuajo-Buenos Aires': ['09:10'],
-  'Carlos Casares-9 De Julio': ['09:50'], 
-  'Carlos Casares-Junin': ['09:50'],
-  'Carlos Casares-Bragado': ['09:50'],
-  'Carlos Casares-Buenos Aires': ['09:50'],
-  '9 De Julio-Junin': ['10:30'],
-  '9 De Julio-Bragado': ['10:30'],
-  '9 De Julio-Buenos Aires': ['10:30'],
-  'Junin-Bragado': ['11:00'],
-  'Junin-Buenos Aires': ['11:00'],
-  'Bragado-Buenos Aires': ['11:30'],
-};
+// ELIMINAMOS el objeto 'horarios' hardcodeado. 
+// Ahora los datos se cargan desde el estado 'horariosData' después del fetch.
 
 const Horarios = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { origen, destino, dia } = location.state || {};
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { origen, destino, dia } = location.state || {};
 
-  const handleSeleccionar = (horario) => {
-    navigate('/asientos', { state: { origen, destino, dia, horario } });
-  };
+    // Estado para guardar el objeto completo de horarios traído de Firebase
+    const [horariosData, setHorariosData] = useState({});
+    // Estado para controlar la carga de la base de datos
+    const [loading, setLoading] = useState(true);
 
-  const clave = `${origen}-${destino}`;
-  const horariosDisponibles = horarios[clave] || [];
+    // 💡 EFECTO: Se ejecuta una sola vez al montar el componente para traer todos los horarios
+    useEffect(() => {
+        const getHorariosData = async () => {
+            setLoading(true);
+            
+            // 1. Referencia al documento 'horariosData' dentro de la colección 'config'
+            const docRef = doc(db, "config", "horariosData");
+            
+            try {
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists()) {
+                    // 2. Guardamos el mapa 'horarios' completo en el estado
+                    // docSnap.data().horarios contendrá: { 'TL-JJ': ['08:00'], ... }
+                    setHorariosData(docSnap.data().horarios);
+                } else {
+                    console.log("No se encontró el documento 'horariosData' en la colección 'config'.");
+                    setHorariosData({});
+                }
+            } catch (error) {
+                console.error("Error al obtener el objeto de horarios:", error);
+                setHorariosData({});
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  return (
-  <div className="horarios-container">
-    <div className="horarios-card">
-      <h2>Horarios disponibles</h2>
-      <div className="resumen-viaje">
-        <p>
-          Origen: {origen}<br />
-          Destino: {destino}<br />
-          Día: {dia}
-        </p>
-      </div>
+        getHorariosData();
+    }, []); // Array vacío: solo se ejecuta al inicio
 
-      <div className="tabla-horarios">  {/*///////////////////////////////*/}
-      <ul>
-        {horariosDisponibles.map(h => (
-          <li key={h}>
-            {h} <button className="btn-seleccionar" onClick={() => handleSeleccionar(h)}>Seleccionar</button>
-          </li>
-        ))}
-      </ul>
-      </div>
-      <button type="button" className="btn-volver" onClick={() => navigate(-1)} >Volver</button>
-    </div>
-  </div>
-  );
+    const handleSeleccionar = (horario) => {
+        // Mantiene la lógica original de navegación
+        navigate('/asientos', { state: { origen, destino, dia, horario } });
+    };
+
+    // 💡 LÓGICA DE BÚSQUEDA: Utiliza el estado 'horariosData'
+    const clave = `${origen}-${destino}`;
+    const horariosDisponibles = horariosData[clave] || [];
+
+    return (
+        <div className="horarios-container">
+            <div className="horarios-card">
+                <h2>Horarios disponibles</h2>
+                
+                <div className="resumen-viaje">
+                    {/* El layout de tu resumen de viaje se ajusta un poco para mejor lectura */}
+                    <p>
+                        Origen: <strong>{origen}</strong><br />
+                        Destino: <strong>{destino}</strong><br />
+                        Día: <strong>{dia}</strong>
+                    </p>
+                </div>
+
+                {/* Muestra un mensaje de carga mientras se obtienen los datos */}
+                {loading && <p className="loading-message">Cargando horarios desde la base de datos...</p>}
+
+                {/* Renderizado condicional */}
+                {!loading && (
+                    <div className="tabla-horarios"> 
+                        {horariosDisponibles.length > 0 ? (
+                            <ul>
+                                {horariosDisponibles.map((h) => (
+                                    <li key={h}>
+                                        {h} 
+                                        <button 
+                                            className="btn-seleccionar" 
+                                            onClick={() => handleSeleccionar(h)}
+                                        >
+                                            Seleccionar
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="no-data-message">
+                                No se encontraron horarios disponibles para la ruta {origen} a {destino}.
+                            </p>
+                        )}
+                    </div>
+                )}
+                
+                <button 
+                    type="button" 
+                    className="btn-volver" 
+                    onClick={() => navigate(-1)} 
+                >
+                    Volver
+                </button>
+            </div>
+        </div>
+    );
 };
 
 export default Horarios;
