@@ -1,14 +1,11 @@
-/* Estilos generales para centrar el contenido */
 .horarios-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    background-color: #f0f4f8; /* Fondo suave */
+    background-color: #f0f1f8; 
 }
-
-/* Estilo de la tarjeta principal */
 .horarios-card {
     background: #ffffff;
     padding: 30px;
@@ -18,16 +15,13 @@
     width: 100%;
     text-align: center;
 }
-
 .horarios-card h2 {
-    color: #004d99; /* Azul corporativo */
+    color: #004d99;
     margin-bottom: 20px;
     font-weight: 700;
 }
-
-/* Estilos del resumen del viaje */
 .resumen-viaje {
-    background-color: #e6f0ff;
+    background-color: #316bc2dc;
     border: 1px solid #cce0ff;
     padding: 15px;
     border-radius: 8px;
@@ -36,29 +30,24 @@
     line-height: 1.6;
     text-align: left;
 }
-
-/* Estilos de la tabla/lista de horarios */
 .tabla-horarios ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
-
 .tabla-horarios li {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px;
     margin-bottom: 10px;
-    background-color: #f9f9f9;
+    background-color: #b4c9d1;
     border-radius: 8px;
-    border-left: 5px solid #007bff; /* Detalle de color */
+    border-left: 5px solid #007bff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     font-weight: 600;
     color: #333;
 }
-
-/* Estilo de los botones */
 .btn-seleccionar,
 .btn-volver {
     padding: 10px 15px;
@@ -68,27 +57,21 @@
     font-weight: 600;
     transition: background-color 0.3s ease;
 }
-
 .btn-seleccionar {
-    background-color: #28a745; /* Verde para seleccionar */
+    background-color: #28a745;
     color: white;
 }
-
 .btn-seleccionar:hover {
     background-color: #1e7e34;
 }
-
 .btn-volver {
     margin-top: 20px;
-    background-color: #6c757d; /* Gris para volver */
+    background-color: #6c757d;
     color: white;
 }
-
 .btn-volver:hover {
     background-color: #5a6268;
 }
-
-/* Mensajes de estado */
 .loading-message, .no-data-message {
     padding: 20px;
     background-color: #fff3cd;

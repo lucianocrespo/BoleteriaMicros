@@ -47,9 +47,9 @@
     font-size: 0.95em;
 }
 
-
 .layout-bus {
     display: grid;
+    /* 5 columnas: 2 asientos, pasillo (0.5fr), 2 asientos */
     grid-template-columns: repeat(2, 1fr) 0.5fr repeat(2, 1fr); 
     gap: 10px 5px; /* Espaciado entre filas y columnas */
     width: 100%;
@@ -76,7 +76,6 @@
     transition: background-color 0.2s, transform 0.1s;
 }
 
-
 .asiento-disponible {
     background-color: var(--color-asiento-disponible);
     color: var(--color-texto);
@@ -95,7 +94,7 @@
 }
 
 .asiento-seleccionado {
-    background-color: var(--color-acento-principal);
+    background-color: var(--color-asiento-seleccionado);
     color: white;
     border-color: #007ac7;
 }

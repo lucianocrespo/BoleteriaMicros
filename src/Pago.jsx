@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { db } from './firebase-config'; // 💡 Importamos la DB
+import { doc, getDoc, updateDoc } from 'firebase/firestore'; // 💡 Importamos funciones de Firestore
 import './Pago.css';
 
 function Pago() {
     const location = useLocation();
     const navigate = useNavigate();
+    // Los datos del viaje (origen, destino, horario, asiento) se reciben del state
     const { origen, destino, dia, horario, asiento } = location.state || {};
 
     const [nombre, setNombre] = useState('');
@@ -14,25 +17,88 @@ function Pago() {
     const [mensaje, setMensaje] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    // 💡 Convertimos handleSubmit a una función asíncrona
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setMensaje('');
 
-        // Lógica simulada de pago
-        // (Aca es donde más tarde haríamos el setDoc para guardar la reserva)
-        
-        setTimeout(() => {
-            // El mensaje de éxito se muestra brevemente
-            setMensaje('¡Pago realizado con éxito! Redirigiendo...'); 
+        if (!origen || !destino || !horario || !asiento) {
+            setMensaje('Error: Faltan datos de la reserva.');
             setLoading(false);
-            
-            // Redirige después de que el mensaje de éxito es visible
-            setTimeout(() => {
-                navigate('/MenuViaje'); 
-            }, 1000); 
+            return;
+        }
 
-        }, 2000); // Simula el tiempo de procesamiento de pago
+        // Definimos la ruta de la clave en la base de datos
+        const claveRuta = `${origen}-${destino}`;
+        
+        try {
+            // --- INICIO: Lógica de actualización de Firestore ---
+
+            // 1. OBTENER (Read) el documento 'horariosData'
+            const docRef = doc(db, "config", "horariosData");
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) {
+                throw new Error("No se encontró la configuración de horarios.");
+            }
+
+            // Hacemos una copia del objeto 'horarios' completo
+            const horariosMap = docSnap.data().horarios;
+            
+            // 2. MODIFICAR (Modify) los datos en memoria
+            
+            // Encontrar el array de viajes para la ruta específica
+            const viajesParaRuta = horariosMap[claveRuta];
+            if (!viajesParaRuta) {
+                throw new Error("No se encontró la ruta.");
+            }
+
+            // Encontrar el índice del horario específico (ej. "08:00")
+            const viajeIndex = viajesParaRuta.findIndex(v => v.horario === horario);
+            if (viajeIndex === -1) {
+                throw new Error("No se encontró el horario específico.");
+            }
+            
+            // Obtener la cadena actual de asientos ocupados
+            const viajeAModificar = viajesParaRuta[viajeIndex];
+            const ocupadosActual = viajeAModificar.asientosOcupados;
+
+            // Añadir el nuevo asiento a la cadena
+            let nuevosOcupados;
+            if (ocupadosActual === "null" || !ocupadosActual) {
+                // Si es "null" o vacío, este es el primer asiento
+                nuevosOcupados = `${asiento}`;
+            } else {
+                // Si ya hay asientos, lo agregamos (ej: "1, 7" -> "1, 7, 12")
+                nuevosOcupados = `${ocupadosActual}, ${asiento}`;
+            }
+
+            // Actualizar el objeto en memoria
+            viajeAModificar.asientosOcupados = nuevosOcupados;
+            horariosMap[claveRuta][viajeIndex] = viajeAModificar;
+
+            // 3. ESCRIBIR (Write) el objeto 'horarios' completo de vuelta
+            await updateDoc(docRef, {
+                horarios: horariosMap
+            });
+
+            // --- FIN: Lógica de Firestore ---
+
+            // Si llegamos aquí, la reserva fue exitosa
+            setMensaje('¡Pago realizado con éxito! Asiento reservado.');
+            
+            // Redirige a la página principal (como en tu código original)
+            setTimeout(() => {
+                navigate('/'); // Redirige a la página principal
+            }, 2000); // 2 segundos para mostrar el mensaje de éxito
+
+        } catch (error) {
+            console.error("Error al procesar la reserva: ", error);
+            setMensaje(`Error al procesar la reserva: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -54,6 +120,7 @@ function Pago() {
                 {mensaje && <div className={`mensaje-pago ${mensaje.includes('éxito') ? 'success' : 'error'}`}>{mensaje}</div>}
                 
                 <form className="pago-form" onSubmit={handleSubmit}>
+                    {/* Campos del formulario de pago */}
                     <label>
                         Nombre en la tarjeta:
                         <input
@@ -101,7 +168,7 @@ function Pago() {
                     
                     <div className="pago-actions">
                         <button type="submit" className="btn-pagar" disabled={loading}>
-                            {loading ? 'Procesando Pago...' : 'Realizar Pago'}
+                            {loading ? 'Reservando...' : 'Realizar Pago y Reservar'}
                         </button>
                         <button type="button" className="btn-volver" onClick={() => navigate(-1)} disabled={loading}>
                             Volver

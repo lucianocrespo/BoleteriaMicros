@@ -1,73 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './Asientos.css'; 
 
-const DISTRIBUCION_ASIENTOS = [
-    { id: 1, estado: 'ocupado', gridCol: 1, gridRow: 1 },
-    { id: 2, estado: 'disponible', gridCol: 2, gridRow: 1 },
-    { id: 3, estado: 'disponible', gridCol: 4, gridRow: 1 },
-    { id: 4, estado: 'disponible', gridCol: 5, gridRow: 1 },
-
-    { id: 5, estado: 'disponible', gridCol: 1, gridRow: 2 },
-    { id: 6, estado: 'disponible', gridCol: 2, gridRow: 2 },
-    { id: 7, estado: 'ocupado', gridCol: 4, gridRow: 2 },
-    { id: 8, estado: 'disponible', gridCol: 5, gridRow: 2 },
-    
-    { id: 9, estado: 'disponible', gridCol: 1, gridRow: 3 },
-    { id: 10, estado: 'disponible', gridCol: 2, gridRow: 3 },
-    { id: 11, estado: 'disponible', gridCol: 4, gridRow: 3 },
-    { id: 12, estado: 'disponible', gridCol: 5, gridRow: 3 },
-
-    { id: 13, estado: 'disponible', gridCol: 1, gridRow: 4 },
-    { id: 14, estado: 'disponible', gridCol: 2, gridRow: 4 },
-    { id: 15, estado: 'disponible', gridCol: 4, gridRow: 4 },
-    { id: 16, estado: 'ocupado', gridCol: 5, gridRow: 4 },
-
-    { id: 17, estado: 'disponible', gridCol: 1, gridRow: 5 },
-    { id: 18, estado: 'disponible', gridCol: 2, gridRow: 5 },
-    { id: 19, estado: 'disponible', gridCol: 4, gridRow: 5 },
-    { id: 20, estado: 'disponible', gridCol: 5, gridRow: 5 },
-
-    { id: 21, estado: 'disponible', gridCol: 1, gridRow: 6 },
-    { id: 22, estado: 'disponible', gridCol: 2, gridRow: 6 },
-    { id: 23, estado: 'disponible', gridCol: 4, gridRow: 6 },
-    { id: 24, estado: 'disponible', gridCol: 5, gridRow: 6 },
-
-    { id: 25, estado: 'disponible', gridCol: 1, gridRow: 7 },
-    { id: 26, estado: 'disponible', gridCol: 2, gridRow: 7 },
-    { id: 27, estado: 'disponible', gridCol: 4, gridRow: 7 },
-    { id: 28, estado: 'disponible', gridCol: 5, gridRow: 7 },
-
-    { id: 29, estado: 'disponible', gridCol: 1, gridRow: 8 },
-    { id: 30, estado: 'disponible', gridCol: 2, gridRow: 8 },
-    { id: 31, estado: 'disponible', gridCol: 4, gridRow: 8 },
-    { id: 32, estado: 'disponible', gridCol: 5, gridRow: 8 },
+// El layout estático de los asientos (dónde se dibujan)
+const LAYOUT_ASIENTOS = [
+    { id: 1, gridCol: 1, gridRow: 1 },
+    { id: 2, gridCol: 2, gridRow: 1 },
+    { id: 3, gridCol: 4, gridRow: 1 },
+    { id: 4, gridCol: 5, gridRow: 1 },
+    { id: 5, gridCol: 1, gridRow: 2 },
+    { id: 6, gridCol: 2, gridRow: 2 },
+    { id: 7, gridCol: 4, gridRow: 2 },
+    { id: 8, gridCol: 5, gridRow: 2 },
+    { id: 9, gridCol: 1, gridRow: 3 },
+    { id: 10, gridCol: 2, gridRow: 3 },
+    { id: 11, gridCol: 4, gridRow: 3 },
+    { id: 12, gridCol: 5, gridRow: 3 },
+    { id: 13, gridCol: 1, gridRow: 4 },
+    { id: 14, gridCol: 2, gridRow: 4 },
+    { id: 15, gridCol: 4, gridRow: 4 },
+    { id: 16, gridCol: 5, gridRow: 4 },
+    { id: 17, gridCol: 1, gridRow: 5 },
+    { id: 18, gridCol: 2, gridRow: 5 },
+    { id: 19, gridCol: 4, gridRow: 5 },
+    { id: 20, gridCol: 5, gridRow: 5 },
+    { id: 21, gridCol: 1, gridRow: 6 },
+    { id: 22, gridCol: 2, gridRow: 6 },
+    { id: 23, gridCol: 4, gridRow: 6 },
+    { id: 24, gridCol: 5, gridRow: 6 },
+    { id: 25, gridCol: 1, gridRow: 7 },
+    { id: 26, gridCol: 2, gridRow: 7 },
+    { id: 27, gridCol: 4, gridRow: 7 },
+    { id: 28, gridCol: 5, gridRow: 7 },
+    { id: 29, gridCol: 1, gridRow: 8 },
+    { id: 30, gridCol: 2, gridRow: 8 },
+    { id: 31, gridCol: 4, gridRow: 8 },
+    { id: 32, gridCol: 5, gridRow: 8 },
 ];
 
 function Asientos() {
     const location = useLocation();
     const navigate = useNavigate();
-    const viaje = location.state?.viajeSeleccionado || {};
-    const { origen, destino, dia, horaSalida } = viaje; 
+    
+    // Recibe 'horario' y 'ocupados' (enviados desde Horarios.jsx)
+    const { origen, destino, dia, horario, ocupados } = location.state || {};
     
     const [asientoSeleccionado, setAsientoSeleccionado] = useState(null);
-    
-    const handleSeleccionarAsiento = (asientoId, estado) => {
-        if (estado === 'ocupado') return; 
+    const [asientosOcupados, setAsientosOcupados] = useState([]);
+
+    // EFECTO: Procesa la cadena de asientos ocupados (ej: "1, 7, 12, 21")
+    useEffect(() => {
+        // Asegúrate de que 'ocupados' es una cadena antes de usar .split
+        if (typeof ocupados === 'string' && ocupados !== "null") {
+            // Convierte la cadena en un array de números
+            const ocupadosArray = ocupados.split(',')
+                                        .map(s => parseInt(s.trim(), 10))
+                                        .filter(Number.isInteger); 
+            setAsientosOcupados(ocupadosArray);
+        } else {
+            setAsientosOcupados([]); // Si es "null" o no es una cadena, no hay ocupados
+        }
+    }, [ocupados]); // Se ejecuta si la prop 'ocupados' cambia
+
+    const handleSeleccionarAsiento = (asientoId) => {
+        if (asientosOcupados.includes(asientoId)) return; 
         setAsientoSeleccionado(asientoId === asientoSeleccionado ? null : asientoId);
     };
 
     const handleContinuar = () => {
         navigate('/pago', { 
             state: { 
-                viajeSeleccionado: viaje,
+                origen, 
+                destino, 
+                dia, 
+                horario, // Pasa el horario
                 asiento: asientoSeleccionado 
             } 
         });
     };
 
-    const getAsientoClase = (asientoId, estado) => {
-        if (estado === 'ocupado') return 'asiento-ocupado';
+    const getAsientoClase = (asientoId) => {
+        if (asientosOcupados.includes(asientoId)) return 'asiento-ocupado';
         if (asientoId === asientoSeleccionado) return 'asiento-seleccionado';
         return 'asiento-disponible';
     };
@@ -78,7 +91,7 @@ function Asientos() {
                 <h2>Selección de Asiento</h2>
                 
                 <p className="resumen-viaje-asientos">
-                    {/*{origen} → {destino} | Día: {dia} | Hora: {horaSalida}*/}
+                    {origen || 'N/A'} → {destino || 'N/A'} | Día: {dia || 'N/A'} | Hora: {horario || 'N/A'}
                 </p>
 
                 <div className="leyenda-asientos">
@@ -91,18 +104,18 @@ function Asientos() {
                         Ocupado
                     </div>
                     <div className="leyenda-item">
-                        <span className="leyenda-color" style={{backgroundColor: 'var(--color-acento-principal)'}}></span>
+                        <span className="leyenda-color" style={{backgroundColor: 'var(--color-asiento-seleccionado)'}}></span>
                         Seleccionado
                     </div>
                 </div>
 
                 <div className="layout-bus">
-                    {DISTRIBUCION_ASIENTOS.map(asiento => (
+                    {LAYOUT_ASIENTOS.map(asiento => (
                         <button
                             key={asiento.id}
-                            className={`asiento-btn ${getAsientoClase(asiento.id, asiento.estado)}`}
-                            onClick={() => handleSeleccionarAsiento(asiento.id, asiento.estado)}
-                            disabled={asiento.estado === 'ocupado'}
+                            className={`asiento-btn ${getAsientoClase(asiento.id)}`}
+                            onClick={() => handleSeleccionarAsiento(asiento.id)}
+                            disabled={asientosOcupados.includes(asiento.id)}
                             style={{
                                 gridColumn: asiento.gridCol,
                                 gridRow: asiento.gridRow,
@@ -111,8 +124,6 @@ function Asientos() {
                             {asiento.id}
                         </button>
                     ))}
-                    
-            
                 </div>
 
                 <p style={{marginTop: '15px'}}>Asiento elegido: <strong>{asientoSeleccionado || 'Ninguno'}</strong></p>

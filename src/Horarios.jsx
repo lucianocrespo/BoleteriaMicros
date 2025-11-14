@@ -1,39 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { db } from './firebase-config'; // Importar la instancia de la base de datos
-import { doc, getDoc } from 'firebase/firestore'; // Importar doc y getDoc para documentos únicos
+import { db } from './firebase-config'; 
+import { doc, getDoc } from 'firebase/firestore'; 
 import './Horarios.css'; 
-
-// ELIMINAMOS el objeto 'horarios' hardcodeado. 
-// Ahora los datos se cargan desde el estado 'horariosData' después del fetch.
 
 const Horarios = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { origen, destino, dia } = location.state || {};
 
-    // Estado para guardar el objeto completo de horarios traído de Firebase
     const [horariosData, setHorariosData] = useState({});
-    // Estado para controlar la carga de la base de datos
     const [loading, setLoading] = useState(true);
 
-    // 💡 EFECTO: Se ejecuta una sola vez al montar el componente para traer todos los horarios
     useEffect(() => {
         const getHorariosData = async () => {
             setLoading(true);
-            
-            // 1. Referencia al documento 'horariosData' dentro de la colección 'config'
             const docRef = doc(db, "config", "horariosData");
             
             try {
                 const docSnap = await getDoc(docRef);
-                
                 if (docSnap.exists()) {
-                    // 2. Guardamos el mapa 'horarios' completo en el estado
-                    // docSnap.data().horarios contendrá: { 'TL-JJ': ['08:00'], ... }
                     setHorariosData(docSnap.data().horarios);
                 } else {
-                    console.log("No se encontró el documento 'horariosData' en la colección 'config'.");
+                    console.log("No se encontró el documento 'horariosData'.");
                     setHorariosData({});
                 }
             } catch (error) {
@@ -45,15 +34,26 @@ const Horarios = () => {
         };
 
         getHorariosData();
-    }, []); // Array vacío: solo se ejecuta al inicio
+    }, []); 
 
-    const handleSeleccionar = (horario) => {
-        // Mantiene la lógica original de navegación
-        navigate('/asientos', { state: { origen, destino, dia, horario } });
+    // 💡 CORREGIDO: Ahora pasa los campos correctos
+    const handleSeleccionar = (viaje) => {
+        // 'viaje' es el objeto { horario: "08:00", asientosOcupados: "1, 7, 12, 21" }
+
+        navigate('/asientos', { 
+            state: { 
+                origen, 
+                destino, 
+                dia, 
+                horario: viaje.horario, // 💡 Usa 'viaje.horario'
+                ocupados: viaje.asientosOcupados || "null" // 💡 Usa 'viaje.asientosOcupados'
+            } 
+        });
     };
 
-    // 💡 LÓGICA DE BÚSQUEDA: Utiliza el estado 'horariosData'
     const clave = `${origen}-${destino}`;
+    
+    // 'horariosDisponibles' es un array de objetos
     const horariosDisponibles = horariosData[clave] || [];
 
     return (
@@ -62,7 +62,6 @@ const Horarios = () => {
                 <h2>Horarios disponibles</h2>
                 
                 <div className="resumen-viaje">
-                    {/* El layout de tu resumen de viaje se ajusta un poco para mejor lectura */}
                     <p>
                         Origen: <strong>{origen}</strong><br />
                         Destino: <strong>{destino}</strong><br />
@@ -70,20 +69,20 @@ const Horarios = () => {
                     </p>
                 </div>
 
-                {/* Muestra un mensaje de carga mientras se obtienen los datos */}
-                {loading && <p className="loading-message">Cargando horarios desde la base de datos...</p>}
+                {loading && <p className="loading-message">Cargando horarios...</p>}
 
-                {/* Renderizado condicional */}
                 {!loading && (
                     <div className="tabla-horarios"> 
                         {horariosDisponibles.length > 0 ? (
                             <ul>
-                                {horariosDisponibles.map((h) => (
-                                    <li key={h}>
-                                        {h} 
+                                {/* 💡 CORREGIDO: Mapea el array de objetos */}
+                                {horariosDisponibles.map((viaje, index) => (
+                                    // 'viaje' es el objeto { horario: "...", asientosOcupados: "..." }
+                                    <li key={viaje.horario + index}>
+                                        {viaje.horario} {/* 💡 Usa 'viaje.horario' */}
                                         <button 
                                             className="btn-seleccionar" 
-                                            onClick={() => handleSeleccionar(h)}
+                                            onClick={() => handleSeleccionar(viaje)} // Pasa el objeto completo
                                         >
                                             Seleccionar
                                         </button>
@@ -92,7 +91,7 @@ const Horarios = () => {
                             </ul>
                         ) : (
                             <p className="no-data-message">
-                                No se encontraron horarios disponibles para la ruta {origen} a {destino}.
+                                No se encontraron horarios para la ruta {origen} a {destino}.
                             </p>
                         )}
                     </div>
