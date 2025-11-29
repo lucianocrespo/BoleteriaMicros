@@ -16,14 +16,52 @@
     width: 100%;
     text-align: center;
 }
-
+/*
 .pago-card h2 {
     color: #004d99;
     margin-bottom: 20px;
     font-size: 1.8em;
     font-weight: 700;
 }
+*/
+/* Header con Timer */
+.pago-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
 
+.pago-header h2 {
+    margin: 0;
+    color: #004d99;
+    font-size: 1.5em;
+}
+
+.timer-box {
+    background-color: #e3f2fd;
+    color: #007bff;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1.1em;
+    border: 1px solid #90caf9;
+}
+
+.timer-danger {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border-color: #ef9a9a;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
 .resumen-viaje {
     background-color: #e6f7ff;
     border: 1px solid #b3e0ff;

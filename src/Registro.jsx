@@ -7,7 +7,7 @@ import './Registro.css';
 
 const Registro = () => {
     const [nombre, setNombre] = useState('');
-    const [mail, setMail] = useState(''); // Corregido: setMail en lugar de seteMail
+    const [mail, setMail] = useState('');
     const [usuario, setUsuario] = useState('');
     const [contrasena, setContrasena] = useState('');
     const [error, setError] = useState(''); // Estado para manejar errores
@@ -19,7 +19,7 @@ const Registro = () => {
         setError('');
         
         if (!nombre || !mail || !usuario || !contrasena) {
-            setError('Por favor, complete todos los campos.');
+            setError('⚠️ Por favor, complete todos los campos.');
             return;
         }
 

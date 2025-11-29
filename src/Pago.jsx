@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { db } from './firebase-config'; // 💡 Importamos la DB
-import { doc, getDoc, updateDoc } from 'firebase/firestore'; // 💡 Importamos funciones de Firestore
+import { db } from './firebase-config'; 
+import { doc, getDoc, updateDoc } from 'firebase/firestore'; 
 import './Pago.css';
 
 function Pago() {
     const location = useLocation();
     const navigate = useNavigate();
-    // Los datos del viaje (origen, destino, horario, asiento) se reciben del state
+    // Recuperamos los datos pasados desde la pantalla anterior
     const { origen, destino, dia, horario, asiento } = location.state || {};
 
     const [nombre, setNombre] = useState('');
@@ -16,165 +16,207 @@ function Pago() {
     const [codigoSeguridad, setCodigoSeguridad] = useState('');
     const [mensaje, setMensaje] = useState('');
     const [loading, setLoading] = useState(false);
+    
+    // Estado del temporizador (5 minutos = 300 segundos)
+    const [segundosRestantes, setSegundosRestantes] = useState(300);
+    const pagoExitosoRef = useRef(false); // Para controlar si ya pagó
 
-    // 💡 Convertimos handleSubmit a una función asíncrona
+    // Cuenta regresiva
+    useEffect(() => {
+        if (!asiento) return; // Si no hay asiento (acceso directo), no iniciar timer
+
+        const intervalo = setInterval(() => {
+            setSegundosRestantes((prev) => {
+                if (prev <= 1) {
+                    clearInterval(intervalo);
+                    handleTimeout(); // Se acabo el tiempo
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(intervalo);
+    }, [asiento]);
+
+    // Formato de tiempo MM:SS
+    const formatoTiempo = (segundos) => {
+        const m = Math.floor(segundos / 60);
+        const s = segundos % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
+    // Funcion para liberar el asiento
+    const liberarAsiento = async () => {
+        if (!origen || !destino || !horario || !asiento) return;
+
+        try {
+            console.log("Liberando asiento...");
+            const claveRuta = `${origen}-${destino}`;
+            const docRef = doc(db, "config", "horariosData");
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const horariosMap = docSnap.data().horarios;
+                const viajesParaRuta = horariosMap[claveRuta];
+                const viajeIndex = viajesParaRuta.findIndex(v => v.horario === horario);
+                
+                if (viajeIndex !== -1) {
+                    const viaje = viajesParaRuta[viajeIndex];
+                    // Convertimos string a array, filtramos el asiento y volvemos a string
+                    let ocupadosArray = viaje.asientosOcupados 
+                        ? viaje.asientosOcupados.split(',').map(s => parseInt(s.trim()))
+                        : [];
+                    
+                    // sacamos el asiento actual
+                    ocupadosArray = ocupadosArray.filter(a => a !== asiento);
+                    
+                    // Guardamos de nuevo ("null" si el array queda vacio)
+                    viaje.asientosOcupados = ocupadosArray.length > 0 ? ocupadosArray.join(', ') : "null";
+                    horariosMap[claveRuta][viajeIndex] = viaje;
+
+                    await updateDoc(docRef, { horarios: horariosMap });
+                    console.log("Asiento liberado en BD.");
+                }
+            }
+        } catch (error) {
+            console.error("Error al liberar asiento:", error);
+        }
+    };
+
+    // Tiempo agotado
+    const handleTimeout = async () => {
+        if (pagoExitosoRef.current) return; // Si ya pago, no hacer nada
+        setMensaje("⏳ Tiempo agotado. El asiento ha sido liberado.");
+        setLoading(true);
+        await liberarAsiento();
+        setTimeout(() => navigate('/'), 3000); // Volver al inicio
+    };
+
+    // Boton volver (Cancelar reserva)
+    const handleVolver = async () => {
+        if (pagoExitosoRef.current) {
+            navigate(-1);
+            return;
+        }
+        
+        if (window.confirm("Si vuelve atrás, perderá su reserva temporal. ¿Está seguro?")) {
+            setLoading(true);
+            await liberarAsiento();
+            navigate(-1);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setMensaje('');
 
-        if (!origen || !destino || !horario || !asiento) {
-            setMensaje('Error: Faltan datos de la reserva.');
-            setLoading(false);
-            return;
-        }
-
-        // Definimos la ruta de la clave en la base de datos
-        const claveRuta = `${origen}-${destino}`;
-        
-        try {
-            // --- INICIO: Lógica de actualización de Firestore ---
-
-            // 1. OBTENER (Read) el documento 'horariosData'
-            const docRef = doc(db, "config", "horariosData");
-            const docSnap = await getDoc(docRef);
-
-            if (!docSnap.exists()) {
-                throw new Error("No se encontró la configuración de horarios.");
-            }
-
-            // Hacemos una copia del objeto 'horarios' completo
-            const horariosMap = docSnap.data().horarios;
+        // Simulacion de pago exitoso (El asiento ya esta reservado desde la pantalla anterior)
+        setTimeout(() => {
+            pagoExitosoRef.current = true; // Marcamos exito para que el timer no libere
+            setMensaje('¡Pago realizado con éxito! Tu asiento está confirmado.');
             
-            // 2. MODIFICAR (Modify) los datos en memoria
-            
-            // Encontrar el array de viajes para la ruta específica
-            const viajesParaRuta = horariosMap[claveRuta];
-            if (!viajesParaRuta) {
-                throw new Error("No se encontró la ruta.");
-            }
-
-            // Encontrar el índice del horario específico (ej. "08:00")
-            const viajeIndex = viajesParaRuta.findIndex(v => v.horario === horario);
-            if (viajeIndex === -1) {
-                throw new Error("No se encontró el horario específico.");
-            }
-            
-            // Obtener la cadena actual de asientos ocupados
-            const viajeAModificar = viajesParaRuta[viajeIndex];
-            const ocupadosActual = viajeAModificar.asientosOcupados;
-
-            // Añadir el nuevo asiento a la cadena
-            let nuevosOcupados;
-            if (ocupadosActual === "null" || !ocupadosActual) {
-                // Si es "null" o vacío, este es el primer asiento
-                nuevosOcupados = `${asiento}`;
-            } else {
-                // Si ya hay asientos, lo agregamos (ej: "1, 7" -> "1, 7, 12")
-                nuevosOcupados = `${ocupadosActual}, ${asiento}`;
-            }
-
-            // Actualizar el objeto en memoria
-            viajeAModificar.asientosOcupados = nuevosOcupados;
-            horariosMap[claveRuta][viajeIndex] = viajeAModificar;
-
-            // 3. ESCRIBIR (Write) el objeto 'horarios' completo de vuelta
-            await updateDoc(docRef, {
-                horarios: horariosMap
-            });
-
-            // --- FIN: Lógica de Firestore ---
-
-            // Si llegamos aquí, la reserva fue exitosa
-            setMensaje('¡Pago realizado con éxito! Asiento reservado.');
-            
-            // Redirige a la página principal (como en tu código original)
             setTimeout(() => {
-                navigate('/'); // Redirige a la página principal
-            }, 2000); // 2 segundos para mostrar el mensaje de éxito
-
-        } catch (error) {
-            console.error("Error al procesar la reserva: ", error);
-            setMensaje(`Error al procesar la reserva: ${error.message}`);
-        } finally {
-            setLoading(false);
-        }
+                navigate('/MenuViaje'); 
+            }, 2000); 
+        }, 2000);
     };
+
+    // Si alguien entra directo a /pago sin datos
+    if (!asiento) {
+        return (
+            <div className="pago-container">
+                <div className="pago-card">
+                    <h2>Error de Navegación</h2>
+                    <p>No has seleccionado un viaje.</p>
+                    <button className="btn-volver" onClick={() => navigate('/')}>Ir al Inicio</button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="pago-container">
             <div className="pago-card">
-                <h2>Formulario de Pago</h2>
+                
+                {/* Header con timer */}
+                <div className="pago-header">
+                    <h2>Formulario de Pago</h2>
+                    <div className={`timer-box ${segundosRestantes < 60 ? 'timer-danger' : ''}`}>
+                        ⏱️ {formatoTiempo(segundosRestantes)}
+                    </div>
+                </div>
                 
                 <div className="resumen-viaje">
-                    <h4>Detalles del Viaje</h4>
+                    <h4>Reserva Temporal</h4>
                     <p>
-                        Origen: <strong>{origen || 'N/A'}</strong><br />
-                        Destino: <strong>{destino || 'N/A'}</strong><br />
-                        Día: <strong>{dia || 'N/A'}</strong><br />
-                        Horario: <strong>{horario || 'N/A'}</strong><br />
-                        Asiento: <strong>{asiento || 'N/A'}</strong>
+                        Origen: <strong>{origen}</strong><br />
+                        Destino: <strong>{destino}</strong><br />
+                        Asiento Reservado: <strong>#{asiento}</strong><br />
+                        <small style={{color: '#666'}}>Tienes 5 minutos para completar el pago.</small>
                     </p>
                 </div>
                 
                 {mensaje && <div className={`mensaje-pago ${mensaje.includes('éxito') ? 'success' : 'error'}`}>{mensaje}</div>}
                 
-                <form className="pago-form" onSubmit={handleSubmit}>
-                    {/* Campos del formulario de pago */}
-                    <label>
-                        Nombre en la tarjeta:
-                        <input
-                            type="text"
-                            value={nombre}
-                            onChange={(e) => setNombre(e.target.value)}
-                            required
-                            placeholder="Nombre del titular"
-                        />
-                    </label>
-                    <label>
-                        Número de tarjeta:
-                        <input
-                            type="text"
-                            value={numeroTarjeta}
-                            onChange={(e) => setNumeroTarjeta(e.target.value)}
-                            required
-                            placeholder="xxxx xxxx xxxx xxxx"
-                            maxLength="19"
-                        />
-                    </label>
-                    
-                    <div className="grid-2-cols">
+                {!mensaje.includes('agotado') && (
+                    <form className="pago-form" onSubmit={handleSubmit}>
                         <label>
-                            Fecha de expiración:
-                            <input
-                                type="month"
-                                value={fechaExpiracion}
-                                onChange={(e) => setFechaExpiracion(e.target.value)}
-                                required
-                            />
-                        </label>
-                        <label>
-                            Código de seguridad (CVV):
+                            Nombre en la tarjeta:
                             <input
                                 type="text"
-                                value={codigoSeguridad}
-                                onChange={(e) => setCodigoSeguridad(e.target.value)}
+                                value={nombre}
+                                onChange={(e) => setNombre(e.target.value)}
                                 required
-                                placeholder="CVV"
-                                maxLength="4"
+                                placeholder="Nombre del titular"
                             />
                         </label>
-                    </div>
-                    
-                    <div className="pago-actions">
-                        <button type="submit" className="btn-pagar" disabled={loading}>
-                            {loading ? 'Reservando...' : 'Realizar Pago y Reservar'}
-                        </button>
-                        <button type="button" className="btn-volver" onClick={() => navigate(-1)} disabled={loading}>
-                            Volver
-                        </button>
-                    </div>
-                </form>
+                        <label>
+                            Número de tarjeta:
+                            <input
+                                type="text"
+                                value={numeroTarjeta}
+                                onChange={(e) => setNumeroTarjeta(e.target.value)}
+                                required
+                                placeholder="xxxx xxxx xxxx xxxx"
+                                maxLength="19"
+                            />
+                        </label>
+                        
+                        <div className="grid-2-cols">
+                            <label>
+                                Vencimiento:
+                                <input
+                                    type="month"
+                                    value={fechaExpiracion}
+                                    onChange={(e) => setFechaExpiracion(e.target.value)}
+                                    required
+                                />
+                            </label>
+                            <label>
+                                CVV:
+                                <input
+                                    type="text"
+                                    value={codigoSeguridad}
+                                    onChange={(e) => setCodigoSeguridad(e.target.value)}
+                                    required
+                                    placeholder="123"
+                                    maxLength="4"
+                                />
+                            </label>
+                        </div>
+                        
+                        <div className="pago-actions">
+                            <button type="submit" className="btn-pagar" disabled={loading}>
+                                {loading ? 'Procesando...' : 'Pagar y Confirmar'}
+                            </button>
+                            <button type="button" className="btn-volver" onClick={handleVolver} disabled={loading}>
+                                Cancelar Reserva
+                            </button>
+                        </div>
+                    </form>
+                )}
             </div>
         </div>
     );

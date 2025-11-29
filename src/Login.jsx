@@ -21,7 +21,7 @@ const Login = ({ onBack }) => {
         setError(''); // Limpiamos errores anteriores
 
         if (!email || !contrasena) {
-            setError('Por favor, complete todos los campos.');
+            setError('⚠️ Por favor, complete todos los campos.');
             return;
         }
 

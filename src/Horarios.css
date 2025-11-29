@@ -20,7 +20,8 @@
     margin-bottom: 20px;
     font-weight: 700;
 }
-.resumen-viaje {
+.resumen-viaje,
+.resumen-viaje p {
     background-color: #316bc2dc;
     border: 1px solid #cce0ff;
     padding: 15px;

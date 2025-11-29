@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { db } from './firebase-config'; // Importamos DB
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import './Asientos.css'; 
 
-// El layout estático de los asientos (dónde se dibujan)
+// El layout estatico de los asientos (dónde se dibujan)
 const LAYOUT_ASIENTOS = [
     { id: 1, gridCol: 1, gridRow: 1 },
     { id: 2, gridCol: 2, gridRow: 1 },
@@ -47,12 +49,13 @@ function Asientos() {
     
     const [asientoSeleccionado, setAsientoSeleccionado] = useState(null);
     const [asientosOcupados, setAsientosOcupados] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    // EFECTO: Procesa la cadena de asientos ocupados (ej: "1, 7, 12, 21")
+    // Procesa la cadena de asientos ocupados (ej: "1, 7, 12, 21")
     useEffect(() => {
         // Asegúrate de que 'ocupados' es una cadena antes de usar .split
         if (typeof ocupados === 'string' && ocupados !== "null") {
-            // Convierte la cadena en un array de números
+            // Convierte la cadena en un array de numeros
             const ocupadosArray = ocupados.split(',')
                                         .map(s => parseInt(s.trim(), 10))
                                         .filter(Number.isInteger); 
@@ -67,16 +70,62 @@ function Asientos() {
         setAsientoSeleccionado(asientoId === asientoSeleccionado ? null : asientoId);
     };
 
-    const handleContinuar = () => {
-        navigate('/pago', { 
-            state: { 
-                origen, 
-                destino, 
-                dia, 
-                horario, // Pasa el horario
-                asiento: asientoSeleccionado 
-            } 
-        });
+    const handleContinuar = async () => {
+        if (!asientoSeleccionado) return;
+        setLoading(true);
+
+        const claveRuta = `${origen}-${destino}`;
+
+        try {
+            // 1. Obtener datos frescos de la BD (para no sobrescribir cambios recientes)
+            const docRef = doc(db, "config", "horariosData");
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) throw new Error("Error de configuración");
+
+            const horariosMap = docSnap.data().horarios;
+            const viajesParaRuta = horariosMap[claveRuta];
+            
+            // Encontrar el indice del viaje correcto
+            const viajeIndex = viajesParaRuta.findIndex(v => v.horario === horario);
+            
+            if (viajeIndex === -1) throw new Error("Horario no encontrado");
+
+            // 2. Modificar string de ocupados
+            const viaje = viajesParaRuta[viajeIndex];
+            let stringOcupados = viaje.asientosOcupados;
+
+            // Validacion extra: ¿Alguien ocupo el asiento hace 1 milisegundo?
+            if (stringOcupados && stringOcupados !== "null") {
+                const checkArray = stringOcupados.split(',').map(s => parseInt(s.trim()));
+                if (checkArray.includes(asientoSeleccionado)) {
+                    alert("¡Lo sentimos! Este asiento acaba de ser ocupado por otra persona.");
+                    setLoading(false);
+                    // Opcional: Recargar la pagina para ver los nuevos ocupados
+                    // navigate(0); 
+                    return;
+                }
+                stringOcupados = `${stringOcupados}, ${asientoSeleccionado}`;
+            } else {
+                stringOcupados = `${asientoSeleccionado}`;
+            }
+
+            // 3. Guardar en Firestore
+            viaje.asientosOcupados = stringOcupados;
+            horariosMap[claveRuta][viajeIndex] = viaje;
+
+            await updateDoc(docRef, { horarios: horariosMap });
+
+            // 4. Navegar a Pago (Pasamos el asiento para que Pago sepa cuál liberar si falla el tiempo)
+            navigate('/pago', { 
+                state: { origen, destino, dia, horario, asiento: asientoSeleccionado } 
+            });
+
+        } catch (error) {
+            console.error("Error al reservar:", error);
+            alert("Hubo un error al reservar el asiento.");
+            setLoading(false);
+        }
     };
 
     const getAsientoClase = (asientoId) => {
@@ -91,7 +140,7 @@ function Asientos() {
                 <h2>Selección de Asiento</h2>
                 
                 <p className="resumen-viaje-asientos">
-                    {origen || 'N/A'} → {destino || 'N/A'} | Día: {dia || 'N/A'} | Hora: {horario || 'N/A'}
+                    {origen} → {destino} | Día: {dia} | Hora: {horario}
                 </p>
 
                 <div className="leyenda-asientos">
@@ -115,7 +164,7 @@ function Asientos() {
                             key={asiento.id}
                             className={`asiento-btn ${getAsientoClase(asiento.id)}`}
                             onClick={() => handleSeleccionarAsiento(asiento.id)}
-                            disabled={asientosOcupados.includes(asiento.id)}
+                            disabled={asientosOcupados.includes(asiento.id) || loading}
                             style={{
                                 gridColumn: asiento.gridCol,
                                 gridRow: asiento.gridRow,
@@ -129,15 +178,15 @@ function Asientos() {
                 <p style={{marginTop: '15px'}}>Asiento elegido: <strong>{asientoSeleccionado || 'Ninguno'}</strong></p>
 
                 <div className="asientos-actions">
-                    <button onClick={() => navigate(-1)} className="btn-volver">
+                    <button onClick={() => navigate(-1)} className="btn-volver" disabled={loading}>
                         Volver
                     </button>
                     <button 
                         onClick={handleContinuar} 
-                        disabled={!asientoSeleccionado} 
+                        disabled={!asientoSeleccionado || loading} 
                         className="btn-continuar"
                     >
-                        Continuar a Pago
+                        {loading ? 'Reservando...' : 'Confirmar Asiento'}
                     </button>
                 </div>
             </div>
