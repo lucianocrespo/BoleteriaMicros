@@ -1,12 +1,18 @@
+/* LAYOUT PRINCIPAL */
+
+/* Contenedor que centra el formulario en la pantalla */
 .registro-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    background-color: #f0f4f8; /* Fondo suave */
+    background-color: #f0f4f800; 
 }
 
+/* DISEÑO DE TARJETA */
+
+/* Caja blanca que contiene el formulario */
 .registro-form-card {
     background: #ffffff;
     padding: 35px;
@@ -23,6 +29,8 @@
     font-size: 1.8em;
     font-weight: 700;
 }
+
+/* CAMPOS DEL FORMULARIO */
 
 .registro-form label {
     display: block;
@@ -41,6 +49,7 @@
     box-sizing: border-box;
 }
 
+/* BOTONES DE ACCION */
 .registro-actions {
     margin-top: 25px;
     display: flex;
@@ -48,6 +57,7 @@
     gap: 10px;
 }
 
+/* Estilos base compartidos para botones */
 .btn-registrar,
 .btn-volver {
     padding: 12px;
@@ -59,15 +69,17 @@
     transition: background-color 0.3s;
 }
 
+/* Boton principal (Accion de registro) */
 .btn-registrar {
     background-color: #28a745; /* Verde para registrar */
     color: white;
 }
 
 .btn-registrar:hover:not(:disabled) {
-    background-color: #1e7e34;
+    background-color: #1e7e34; /* Verde mas oscuro */
 }
 
+/* Boton secundario (Navegacion) */
 .btn-volver {
     background-color: #6c757d; /* Gris para volver */
     color: white;
@@ -77,6 +89,9 @@
     background-color: #5a6268;
 }
 
+/* MENSAJES DE ERROR */
+
+/* Caja de alerta roja para feedback */
 .error-message {
     padding: 10px;
     background-color: #f8d7da;
@@ -85,4 +100,27 @@
     border-radius: 5px;
     margin-bottom: 15px;
     font-weight: 500;
+}
+
+/* FONDO DE PANTALLA */
+
+/* Contenedor fijo para la imagen */
+.imagen {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    overflow: hidden;
+    z-index: -1; 
+}
+/* Ajuste de la imagen para cubrir el area sin deformarse */
+.imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Escala la imagen para cubrir todo sin deformarse */
+    object-position: center; /* Centra la imagen */
+    display: block; /* Elimina espacios extra debajo de la imagen */
 }

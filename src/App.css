@@ -1,10 +1,6 @@
-/*#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-} */ 
-/* REINICIO GLOBAL */
+/* Reset global y estructura base */
+
+/* Nos aseguramos de que el documento ocupe todo el ancho y alto de la pantalla */
 html, body {
     margin: 0;
     padding: 0;
@@ -12,6 +8,7 @@ html, body {
     min-height: 100vh; 
 }
 
+/* Contenedor principal de react */
 #root { 
   margin: 0;
   padding: 0;
@@ -19,12 +16,15 @@ html, body {
   min-height: 100vh; 
 }
 
+/* Estilos para logotipos */
 .logo {
   height: 6em;
   padding: 1.5em;
-  will-change: filter;
+  will-change: filter; /* Optimizacion de rendimiento para animaciones */
   transition: filter 300ms;
 }
+
+/* Efecto de brillo al pasar el mouse sobre logos */
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
@@ -32,6 +32,7 @@ html, body {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
+/* Definicion de la animacion de rotacion */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -41,6 +42,7 @@ html, body {
   }
 }
 
+/* Se aplica la animacion a menos que el usuario haya habilitado la opcion "reducir movimiento" */
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;

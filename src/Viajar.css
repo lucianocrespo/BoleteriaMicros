@@ -1,40 +1,66 @@
+/* VARIABLES Y TEMA (Modo Claro/Oscuro) */
 :root {
-    --color-fondo-principal: #f9f9f9; 
+    /* Definimos las variables de color por defecto (Modo Claro) */
+    --color-fondo-page: #f0f2f500; 
     --color-tarjeta: #ffffff; 
     --color-borde: #dbdbdb; 
     --color-texto: #262626; 
+    --color-input-bg: #4a4a4a; /* Fondo del input para que se distinga bien en el modo claro */
     --color-acento: #0095f6;
-    --sombra-sutil: 0 1px 3px rgba(0, 0, 0, 0.251), 0 1px 2px rgba(0, 0, 0, 0.24);
+    --sombra-sutil: 0 4px 12px rgba(0, 0, 0, 0.1);
+    
+    /* Esta linea permite que el navegador sepa que se soportan ambos modos
+       y ajuste automaticamente controles nativos como el calendario */
+    color-scheme: light dark;
 }
 
+/* Variables modo oscuro (Automatico) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-fondo-page: #12121200;
+        --color-tarjeta: #1e1e1e;
+        --color-borde: #333333;
+        --color-texto: #e0e0e0;
+        --color-input-bg: #aeaeae; /* Fondo del input para que se distinga bien en el modo oscuro */
+        --sombra-sutil: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* LAYOUT PRINCIPAL */
+
 .viajar-container {
-    background-color: #f9f9f900;
+    background-color: var(--color-fondo-page);
     min-height: 100vh;
-    display: flex;
+    display: flex; /* Flexbox para centrar el contenido */
     flex-direction: column;
     align-items: center;
     padding-top: 60px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: var(--color-texto);
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transicion suave de colores al cambiar de tema */
 }
+
+/* TARJETA DEL FORMULARIO */
 
 .viajar-form-card {
     background-color: var(--color-tarjeta);
     padding: 40px;
     border: 1px solid var(--color-borde);
-    border-radius: 8px; 
+    border-radius: 12px; 
     box-shadow: var(--sombra-sutil);
     width: 100%;
     max-width: 400px; 
+    transition: background-color 0.3s ease;
 }
 
 .viajar-form-card h2 {
     text-align: center;
     margin-bottom: 24px;
-    font-weight: 600; 
+    font-weight: 700; 
     color: var(--color-texto);
 }
-/*
+
+/* Estilos para mensajes de error */
 .error-message {
     background-color: #ffebee;
     color: #c62828;
@@ -45,8 +71,18 @@
     font-size: 14px;
     text-align: center;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}*/
+}
+
+/* Ajuste del mensaje de error para modo oscuro */
+@media (prefers-color-scheme: dark) {
+    .error-message {
+        background-color: #4a1818;
+        color: #ffcdd2;
+        border-color: #ef5350;
+    }
+}
+
+/* CAMPOS DEL FORMULARIO */
 
 .viajar-form {
     display: flex;
@@ -65,64 +101,75 @@
 .viajar-form input {
     width: 100%;
     margin-top: 4px;
-    padding: 10px 12px;
+    padding: 12px;
     border: 1px solid var(--color-borde);
-    border-radius: 4px; 
-    background-color: var(--color-fondo-principal); 
+    border-radius: 6px; 
+    background-color: var(--color-input-bg); 
     font-size: 16px;
     color: var(--color-texto);
-    transition: border-color 0.2s, box-shadow 0.2s; 
+    transition: border-color 0.2s, background-color 0.3s; 
 }
 
 .viajar-form input:focus {
     border-color: var(--color-acento);
     outline: none; 
-    box-shadow: 0 0 0 1px var(--color-acento);
+    box-shadow: 0 0 0 2px rgba(0, 149, 246, 0.2);
 }
 
+/* Asegura que el icono de calendario invierta color en ciertos navegadores viejos */
+.viajar-form input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    /* En modo oscuro (texto claro), el filtro invertira el icono a blanco */
+    filter: invert(var(--icono-invert, 0)); 
+}
+
+@media (prefers-color-scheme: dark) {
+    .viajar-form input[type="date"]::-webkit-calendar-picker-indicator {
+        /* Invierte el color del icono negro por defecto a blanco */
+        filter: invert(1); 
+    }
+}
+
+/* BOTONES */
+
 .viajar-form button {
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, opacity 0.2s;
     margin-top: 4px;
+    font-size: 16px;
 }
 
 .viajar-form .btn-principal {
     background-color: var(--color-acento);
-    color: var(--color-tarjeta);
+    color: white;
 }
 
-.viajar-form .btn-principal:hover {
+.viajar-form .btn-principal:hover:not(:disabled) {
     background-color: #007ac7;
 }
 
+.viajar-form .btn-principal:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 .viajar-form .btn-secundario {
-    background-color: #3e474bcf;
+    background-color: transparent;
     color: var(--color-acento);
     border: 1px solid var(--color-acento);
     margin-top: 8px;
 }
 
 .viajar-form .btn-secundario:hover {
-    background-color: #f0f8ff; 
+    background-color: rgba(0, 149, 246, 0.1); 
 }
 
-/* 💡 Añadido estilo para la imagen que faltaba */
-/*
-.imagen {
-    margin-top: 20px;
-    max-width: 400px;
-    width: 100%;
-}
-.imagen img {
-    width: 100%;
-    border-radius: 8px;
-    box-shadow: var(--sombra-sutil);
-}
-*/
+/* IMAGEN DE FONDO */
+
 .imagen {
     display: flex;
     position: fixed;

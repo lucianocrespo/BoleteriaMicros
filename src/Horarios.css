@@ -1,54 +1,99 @@
+/* LAYOUT PRINCIPAL Y CONTENEDOR */
+
+/* Contenedor principal que centra la tarjeta en la pantalla */
 .horarios-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    background-color: #f0f1f8; 
+    background-color: #f0f8f600; 
 }
+
+/* DISEÑO DE LA TARJETA */
+
+/* Tarjeta blanca flotante que contiene la informacion */
 .horarios-card {
     background: #ffffff;
     padding: 30px;
     border-radius: 16px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-    width: 100%;
+    max-width: 600px; /* Ancho maximo para que no se estire demasiado en PC */
+    width: 100%; /* Se adapta al ancho disponible en telefonos */
     text-align: center;
 }
+
 .horarios-card h2 {
     color: #004d99;
     margin-bottom: 20px;
     font-weight: 700;
 }
-.resumen-viaje,
-.resumen-viaje p {
+
+/* SECCIÓN DE RESUMEN DEL VIAJE */
+
+/* Caja azul superior con los datos del viaje seleccionado */
+.resumen-viaje {
     background-color: #316bc2dc;
     border: 1px solid #cce0ff;
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
-    font-size: 1.1em;
-    line-height: 1.6;
     text-align: left;
 }
+
+.resumen-viaje p {
+    margin: 0;
+    color: rgba(14, 10, 10, 0.781); 
+    font-size: 1.1em;
+    line-height: 1.6; /* Altura de linea para mejor legibilidad */
+}
+
+/* LISTA DE HORARIOS */
+
 .tabla-horarios ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
+
+/* Cada fila de viaje disponible */
 .tabla-horarios li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; /* Flexbox para alinear info a la izq y boton a la der */
+    justify-content: space-between; /* Separa la info */
+    align-items: center; /* Centrado vertical de los elementos internos */
     padding: 15px;
-    margin-bottom: 10px;
-    background-color: #b4c9d1;
+    margin-bottom: 10px; /* Separacion entre filas */
+    background-color: #e3f2fd;
     border-radius: 8px;
     border-left: 5px solid #007bff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    font-weight: 600;
     color: #333;
 }
+
+/* Contenedor de texto (Hora y Precio) dentro de la fila */
+.viaje-info {
+    display: flex;
+    flex-direction: column; /* Apila la hora sobre el precio */
+    align-items: flex-start; /* Alinea el texto a la izquierda */
+    text-align: left;
+}
+
+.viaje-hora {
+    font-size: 1.25em;
+    font-weight: 700; /* Negrita para destacar la hora */
+    color: #333;
+}
+
+.viaje-precio {
+    font-size: 0.95em;
+    color: #0056b3; /* Azul para indicar que es un dato importante */
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+/* BOTONES DE ACCION */
+
+/* Estilos base compartidos para botones */
 .btn-seleccionar,
 .btn-volver {
     padding: 10px 15px;
@@ -56,23 +101,35 @@
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease; /* Suaviza el cambio de color al pasar el mouse */
 }
+
+/* Boton de accion principal */
 .btn-seleccionar {
     background-color: #28a745;
     color: white;
 }
+
 .btn-seleccionar:hover {
-    background-color: #1e7e34;
+    background-color: #1e7e34; /* Oscurece al pasar el mouse */
 }
+
+/* Boton secundario */
 .btn-volver {
     margin-top: 20px;
     background-color: #6c757d;
     color: white;
+    width: 100%;
+    padding: 12px;
 }
+
 .btn-volver:hover {
     background-color: #5a6268;
 }
+
+/* ESTADOS Y ELEMENTOS DE FONDO */
+
+/* Cajas de mensaje para estados vacios o de carga */
 .loading-message, .no-data-message {
     padding: 20px;
     background-color: #fff3cd;
@@ -80,4 +137,17 @@
     border: 1px solid #ffeeba;
     border-radius: 8px;
     margin: 20px 0;
+}
+
+/* Imagen de fondo fija */
+.imagen {
+    display: flex;
+    position: fixed; /* Fija la imagen respecto a la ventana del navegador */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    overflow: hidden;
+    z-index: -1; /* La coloca detras de todo el contenido */
 }

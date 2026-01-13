@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from './firebase-config'; 
-import { signInWithEmailAndPassword } from 'firebase/auth'; 
+// Importamos 'auth' para verificar credenciales y 'db' para leer el rol del usuario desde Firestore
+import { auth, db } from './firebase-config'; 
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore'; 
+// Importamos estilos e imagen
 import './Login.css';
+import microruta from './assets/Imagenes/microruta.png';
 
 const Login = ({ onBack }) => {
+    // Estados para el formulario y control de interfaz
     const [email, setEmail] = useState('');
     const [contrasena, setContrasena] = useState('');
     const [error, setError] = useState(''); // Estado para manejar errores de login
-    const [loading, setLoading] = useState(false); // Estado para evitar doble click
+    const [loading, setLoading] = useState(false); // Estado para evitar doble click (se bloquea el boton mientras se procesa la solicitud)
     const navigate = useNavigate();
 
     const handleRegistrarse = (e) => {
@@ -16,36 +21,62 @@ const Login = ({ onBack }) => {
         navigate('/Registro');
     };
 
+    // Maneja el inicio de sesion
+    /* Flujo:
+            . Valida campos vacios.
+            . Autentica con Firebase Auth (Email/Pass).
+            . Si es exitoso, busca el documento del usuario en Firestore.
+            . Verifica si el campo 'esAdmin' es true para redirigir al panel correspondiente. 
+    */
+
     const handleEntrar = async (e) => {
         e.preventDefault();
         setError(''); // Limpiamos errores anteriores
 
+        // Validacion basica de frontend
         if (!email || !contrasena) {
             setError('⚠️ Por favor, complete todos los campos.');
             return;
         }
 
-        setLoading(true);
+        setLoading(true); // Activa estado de carga
 
         try {
-            await signInWithEmailAndPassword(auth, email, contrasena);
-            // Si tiene éxito, navega al menú
-            navigate('/MenuViaje');
+            // Intentamos iniciar sesion (Esto valida si el email/pass son reales)
+            const userCredential = await signInWithEmailAndPassword(auth, email, contrasena);
+            const user = userCredential.user;
 
-        } catch (firebaseError) {
-            // Manejo de errores específicos de Firebase
-            let errorMessage = 'Error al iniciar sesión. Credenciales incorrectas.';
-            
-            if (firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
-                errorMessage = 'Usuario o contraseña incorrectos.';
-            } else if (firebaseError.code === 'auth/invalid-email') {
-                errorMessage = 'Formato de correo electrónico no válido.';
+            // Obtenemos los datos adicionales del perfil desde Firestore usando el UID
+            const docRef = doc(db, "Usuarios", user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                
+                // Logica de Redireccion segun el rol
+                if (userData.esAdmin === true) {
+                    console.log("Usuario Administrador detectado");
+                    navigate('/PanelAdmin'); // Redirige al panel de admin
+                } else {
+                    console.log("Usuario Normal detectado");
+                    navigate('/MenuViaje'); // Redirige a la app normal
+                }
+            } else {
+                // Si no existe el perfil en Firestore (raro, pero posible), ir al menu normal
+                navigate('/MenuViaje');
             }
-            
+        } catch (firebaseError) {
+            // Manejo de errores especificos para dar feedback util al usuario
+            let errorMessage = 'Error al iniciar sesión.';
+            if (firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password') {
+                errorMessage = 'Credenciales incorrectas.';
+            } else if (firebaseError.code === 'auth/invalid-email') {
+                errorMessage = 'Email inválido.';
+            }
             setError(errorMessage);
-            console.error("Firebase Login Error:", firebaseError.message);
+            console.error("Login Error:", firebaseError.message);
         } finally {
-            setLoading(false);
+            setLoading(false); // Desactiva la carga pase lo que pase
         }
     };
 
@@ -54,6 +85,7 @@ const Login = ({ onBack }) => {
             <div className="login-form-card">
                 <h2>Iniciar Sesión</h2>
  
+                {/* Renderizado condicional del mensaje de error */}
                 {error && <p className="error-message">{error}</p>}
                 
                 <form className="login-form" onSubmit={handleEntrar}>
@@ -94,6 +126,10 @@ const Login = ({ onBack }) => {
                         </button>
                     </div>
                 </form>
+            </div>
+            {/* Imagen decorativa de fondo */}
+            <div className="imagen">
+                <img src={microruta} alt="Imagen de Micro" />
             </div>
         </div>
     );

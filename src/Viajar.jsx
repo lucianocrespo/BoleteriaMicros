@@ -1,30 +1,34 @@
-import React, { useState, useEffect } from 'react'; // Añadimos useEffect
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from './firebase-config'; // Importamos la DB
 import { doc, getDoc } from 'firebase/firestore'; // Importamos funciones de Firestore
+// Importamos estilos e imagen
 import './Viajar.css';
-import viaje from './assets/viaje.png';
+import viaje from './assets/Imagenes/viaje.png';
 
 function Viajar() {
+    // Estados del formulario
     const [origen, setOrigen] = useState('');
     const [destino, setDestino] = useState('');
     const [dia, setDia] = useState('');
+    // Estados de datos y UI
     const [ciudades, setCiudades] = useState([]); // Estado para la lista de ciudades
-    const navigate = useNavigate();
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const navigate = useNavigate();
     const hoy = new Date().toISOString().split('T')[0]; // Fecha actual, para que no se puedan elegir dias anteriores
 
-    // EFECTO: Se ejecuta una vez para cargar la lista de ciudades
+    // Carga inicial de ciudades desde Firestore
     useEffect(() => {
         const getCiudades = async () => {
-            // 1. Referencia al documento 'ciudades' en la colección 'config'
+            // Referencia al documento 'ciudades' en la colección 'config'
             const docRef = doc(db, "config", "ciudades");
             try {
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists() && docSnap.data().lista) {
-                    // 2. Guardamos el array 'lista' en el estado
+                    // Guardamos el array 'lista' en el estado
                     setCiudades(docSnap.data().lista);
                 } else {
                     console.log("No se encontró el documento 'ciudades' o el campo 'lista'");
@@ -35,32 +39,30 @@ function Viajar() {
         };
 
         getCiudades();
-    }, []); // El array vacío [] asegura que se ejecute solo una vez al montar
+    }, []); // El array vacio [] asegura que se ejecute solo una vez al montar
 
-
+    // Manejo de la busqueda
     const handleBuscar = (e) => {
-        // 1. Prevención del evento (Versión Robusta)
         if (e && e.preventDefault) {
             e.preventDefault();
         }
-
         setError(''); // Limpiamos errores previos
 
-        // 2. Validación de campos completos
-        // El .trim() elimina espacios en blanco al inicio y final por si acaso
+        // Validacion de campos requeridos
+        // (El .trim() elimina espacios en blanco al inicio y final por las dudas)
         if (!origen.trim() || !destino.trim() || !dia) {
             setError('⚠️ Por favor, complete todos los campos.');
-            return; // DETIENE la ejecución aquí si falta algo
+            return; // Detiene la ejecucion aca si falta algo
         }
-        // Validación extra: Asegurarse de que no sea una fecha pasada manualmente
+        // Validacion extra: Asegurarse de que no sea una fecha pasada manualmente
         if (dia < hoy) {
             setError('⚠️ Elija una fecha válida.');
             return;
         }
-
-        // 3. Si pasa la validación, procedemos
+        // Si pasa la validacion, procedemos
         setLoading(true);
 
+        // Simulacion de proceso y navegacion
         setTimeout(() => {
             console.log('Datos válidos. Buscando viaje:', { origen, destino, dia });
             navigate('/horarios', { state: { origen, destino, dia } });
@@ -71,6 +73,8 @@ function Viajar() {
         <div className="viajar-container">
             <div className="viajar-form-card">
                 <h2>Buscar Viaje</h2>
+
+                {/* Feedback de error */}
                 {error && <div className="error-message">{error}</div>}
 
                 <form className="viajar-form">
@@ -79,7 +83,7 @@ function Viajar() {
                         <input type="text" value={origen} onChange={e => setOrigen(e.target.value)} placeholder=" Ciudad de origen" 
                         list="ciudades-list"/>
                         
-                        {/* DATALIST DINÁMICO: Se llena con el estado 'ciudades' */}
+                        {/* Datalist dinamico cargado de BD */}
                         <datalist id="ciudades-list">
                             {ciudades.map((ciudad) => (
                                 <option key={ciudad} value={ciudad} />
@@ -94,13 +98,15 @@ function Viajar() {
 
                     <label>
                         Día:
-                        <input type="date" value={dia} min={hoy} onChange={e => setDia(e.target.value)} />
+                        <input type="date" value={dia} min={hoy} // Restriccion nativa de fecha
+                        onChange={e => setDia(e.target.value)} />
                     </label>
-
+ 
                     <button type="button" className="btn-principal" onClick={handleBuscar}>Buscar</button>
                     <button type="button" className="btn-secundario" onClick={() => navigate(-1)}>Volver</button>
                 </form>
             </div>
+            {/* Imagen decorativa de fondo */}
             <div className="imagen">
                 <img src={viaje} alt="Viaje" />
             </div>

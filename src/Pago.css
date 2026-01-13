@@ -1,36 +1,35 @@
+/* LAYOUT PRINCIPAL */
+
+/* Contenedor que centra la tarjeta de pago vertical y horizontalmente */
 .pago-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    background-color: #f0f4f8; /* Fondo suave */
+    background-color: #f0f4f8; /* Fondo transparente para ver la imagen de atras */
 }
 
+/* Tarjeta principal */
 .pago-card {
     background: #ffffff;
     padding: 35px;
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    max-width: 450px;
+    max-width: 450px; /* Ancho limitado para mejor lectura */
     width: 100%;
     text-align: center;
 }
-/*
-.pago-card h2 {
-    color: #004d99;
-    margin-bottom: 20px;
-    font-size: 1.8em;
-    font-weight: 700;
-}
-*/
-/* Header con Timer */
+
+/* HEADER Y CRONÓMETRO */
+
+/* Cabecera que contiene el titulo y el reloj alineados a los extremos */
 .pago-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid #f0f0f0; /* Linea divisoria sutil */
     padding-bottom: 10px;
 }
 
@@ -40,28 +39,34 @@
     font-size: 1.5em;
 }
 
+/* Caja visual del temporizador */
 .timer-box {
     background-color: #e3f2fd;
     color: #007bff;
     padding: 5px 10px;
-    border-radius: 20px;
+    border-radius: 20px; /* Forma de redondeada */
     font-weight: 700;
     font-size: 1.1em;
     border: 1px solid #90caf9;
 }
 
+/* Estado de alerta: Se activa cuando queda poco tiempo (menos de un minuto) */
 .timer-danger {
     background-color: #ffebee;
     color: #d32f2f;
     border-color: #ef9a9a;
-    animation: pulse 1s infinite;
+    animation: pulse 1s infinite; /* Efecto de latido para llamar la atencion */
 }
 
+/* Definicion de la animacion de latido */
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.05); }
     100% { transform: scale(1); }
 }
+
+/* RESUMEN DEL VIAJE */
+
 .resumen-viaje {
     background-color: #e6f7ff;
     border: 1px solid #b3e0ff;
@@ -80,6 +85,8 @@
     margin-bottom: 10px;
 }
 
+/* FORMULARIO Y GRID */
+
 .pago-form label {
     display: block;
     text-align: left;
@@ -97,11 +104,14 @@
     box-sizing: border-box;
 }
 
+/* GRID DE 2 COLUMNAS: Usado para poner la Fecha y el CVV uno al lado del otro */
 .grid-2-cols {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
 }
+
+/* BOTONES Y MENSAJES */
 
 .pago-actions {
     margin-top: 25px;
@@ -122,7 +132,7 @@
 }
 
 .btn-pagar {
-    background-color: #007bff; /* Azul para el pago */
+    background-color: #007bff; 
     color: white;
 }
 
@@ -131,7 +141,7 @@
 }
 
 .btn-volver {
-    background-color: #6c757d; /* Gris para volver */
+    background-color: #6c757d; 
     color: white;
 }
 
@@ -150,11 +160,25 @@
 .mensaje-pago.success {
     background-color: #d4edda;
     border: 1px solid #c3e6cb;
-    color: #155724;
+    color: #155724; /* Verde exito */
 }
 
 .mensaje-pago.error {
     background-color: #f8d7da;
     border: 1px solid #f5c6cb;
-    color: #721c24;
+    color: #721c24; /* Rojo error */
+}
+
+/* IMAGEN DE FONDO */
+
+.imagen {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    overflow: hidden;
+    z-index: -1; 
 }

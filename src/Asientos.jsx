@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { db } from './firebase-config'; // Importamos DB
+// Importamos hooks de navegación para recibir datos (useLocation) y cambiar de paqgina (useNavigate)
+import { useLocation, useNavigate } from 'react-router-dom'; 
+// Importamos la configuración de la base de datos y las funciones necesarias de Firestore
+import { db } from './firebase-config';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import './Asientos.css'; 
+// Importamos estilos e imagenes
+import './Asientos.css';
+import viaje from './assets/Imagenes/viaje.png';
 
-// El layout estatico de los asientos (dónde se dibujan)
+// El layout estatico de los asientos (representa la distribucion de los asientos)
 const LAYOUT_ASIENTOS = [
     { id: 1, gridCol: 1, gridRow: 1 },
     { id: 2, gridCol: 2, gridRow: 1 },
@@ -41,19 +45,20 @@ const LAYOUT_ASIENTOS = [
 ];
 
 function Asientos() {
+    // Hooks de navegación
     const location = useLocation();
     const navigate = useNavigate();
     
-    // Recibe 'horario' y 'ocupados' (enviados desde Horarios.jsx)
+    // Recuperamos los datos pasados desde la pantalla anterior (Horarios)
     const { origen, destino, dia, horario, ocupados } = location.state || {};
     
-    const [asientoSeleccionado, setAsientoSeleccionado] = useState(null);
-    const [asientosOcupados, setAsientosOcupados] = useState([]);
-    const [loading, setLoading] = useState(false);
+    // Estados locales del componente
+    const [asientoSeleccionado, setAsientoSeleccionado] = useState(null); // Guarda el ID del asiento que el usuario acaba de tocar
+    const [asientosOcupados, setAsientosOcupados] = useState([]); // Array de números con los asientos ya vendidos
+    const [loading, setLoading] = useState(false); // Para mostrar estado de carga y bloquear botones
 
     // Procesa la cadena de asientos ocupados (ej: "1, 7, 12, 21")
     useEffect(() => {
-        // Asegúrate de que 'ocupados' es una cadena antes de usar .split
         if (typeof ocupados === 'string' && ocupados !== "null") {
             // Convierte la cadena en un array de numeros
             const ocupadosArray = ocupados.split(',')
@@ -65,58 +70,61 @@ function Asientos() {
         }
     }, [ocupados]); // Se ejecuta si la prop 'ocupados' cambia
 
+    // Permite seleccionar o deseleccionar, pero impide tocar los ocupados
     const handleSeleccionarAsiento = (asientoId) => {
         if (asientosOcupados.includes(asientoId)) return; 
         setAsientoSeleccionado(asientoId === asientoSeleccionado ? null : asientoId);
     };
 
+    // Al dar clic en "Continuar", actualizamos la base de datos para marcar el asiento como ocupado ANTES de ir al pago, evitando que dos personas compren el mismo
     const handleContinuar = async () => {
-        if (!asientoSeleccionado) return;
+        if (!asientoSeleccionado) return; // Validacion de seguridad
         setLoading(true);
 
-        const claveRuta = `${origen}-${destino}`;
+        const claveRuta = `${origen}-${destino}`; // Clave única para encontrar la ruta en el mapa de horarios
 
         try {
-            // 1. Obtener datos frescos de la BD (para no sobrescribir cambios recientes)
-            const docRef = doc(db, "config", "horariosData");
-            const docSnap = await getDoc(docRef);
+            const docRef = doc(db, "config", "horariosData"); // Referencia al documento global de horarios
+            const docSnap = await getDoc(docRef); // Obtenemos la "foto" actual de la base de datos (para no sobrescribir cambios de otros)
 
             if (!docSnap.exists()) throw new Error("Error de configuración");
 
+            // Obtenemos toda la estructura de datos
             const horariosMap = docSnap.data().horarios;
             const viajesParaRuta = horariosMap[claveRuta];
             
-            // Encontrar el indice del viaje correcto
+            // Buscamos el viaje especifico por su horario
             const viajeIndex = viajesParaRuta.findIndex(v => v.horario === horario);
             
             if (viajeIndex === -1) throw new Error("Horario no encontrado");
 
-            // 2. Modificar string de ocupados
+            // Preparamos la actualizacion del string de ocupados
             const viaje = viajesParaRuta[viajeIndex];
             let stringOcupados = viaje.asientosOcupados;
 
-            // Validacion extra: ¿Alguien ocupo el asiento hace 1 milisegundo?
+            // Verificamos si alguien ocupo el asiento en los milisegundos que tardamos en hacer clic
             if (stringOcupados && stringOcupados !== "null") {
                 const checkArray = stringOcupados.split(',').map(s => parseInt(s.trim()));
                 if (checkArray.includes(asientoSeleccionado)) {
                     alert("¡Lo sentimos! Este asiento acaba de ser ocupado por otra persona.");
                     setLoading(false);
-                    // Opcional: Recargar la pagina para ver los nuevos ocupados
-                    // navigate(0); 
                     return;
                 }
+                // Si esta libre, agregamos nuestro asiento al string existente
                 stringOcupados = `${stringOcupados}, ${asientoSeleccionado}`;
             } else {
+                // Si era el primer asiento ocupado
                 stringOcupados = `${asientoSeleccionado}`;
             }
 
-            // 3. Guardar en Firestore
+            // Actualizamos el objeto en memoria
             viaje.asientosOcupados = stringOcupados;
             horariosMap[claveRuta][viajeIndex] = viaje;
 
+            // Guardamos el cambio en Firestore (DB)
             await updateDoc(docRef, { horarios: horariosMap });
 
-            // 4. Navegar a Pago (Pasamos el asiento para que Pago sepa cuál liberar si falla el tiempo)
+            // Navegamos a la pantalla de Pago
             navigate('/pago', { 
                 state: { origen, destino, dia, horario, asiento: asientoSeleccionado } 
             });
@@ -128,6 +136,7 @@ function Asientos() {
         }
     };
 
+    // Funcion para determinar la clase CSS de un asiento segun su estado (ocupado, seleccionado o disponible)
     const getAsientoClase = (asientoId) => {
         if (asientosOcupados.includes(asientoId)) return 'asiento-ocupado';
         if (asientoId === asientoSeleccionado) return 'asiento-seleccionado';
@@ -143,6 +152,7 @@ function Asientos() {
                     {origen} → {destino} | Día: {dia} | Hora: {horario}
                 </p>
 
+                {/* Leyenda de colores para el usuario */}
                 <div className="leyenda-asientos">
                     <div className="leyenda-item">
                         <span className="leyenda-color" style={{backgroundColor: 'var(--color-asiento-disponible)'}}></span>
@@ -158,13 +168,15 @@ function Asientos() {
                     </div>
                 </div>
 
+                {/* Renderizado de la cuadricula del microbus */}
                 <div className="layout-bus">
                     {LAYOUT_ASIENTOS.map(asiento => (
                         <button
                             key={asiento.id}
-                            className={`asiento-btn ${getAsientoClase(asiento.id)}`}
+                            className={`asiento-btn ${getAsientoClase(asiento.id)}`} // Asignamos clase dinámica
                             onClick={() => handleSeleccionarAsiento(asiento.id)}
-                            disabled={asientosOcupados.includes(asiento.id) || loading}
+                            disabled={asientosOcupados.includes(asiento.id) || loading} // Deshabilitamos si está ocupado o si se está procesando la reserva
+                            // Estilo en línea para ubicarlo en el Grid
                             style={{
                                 gridColumn: asiento.gridCol,
                                 gridRow: asiento.gridRow,
@@ -189,6 +201,10 @@ function Asientos() {
                         {loading ? 'Reservando...' : 'Confirmar Asiento'}
                     </button>
                 </div>
+            </div>
+            {/* Imagen decorativa de fondo */}
+            <div className="imagen">
+                <img src={viaje} alt="Viaje" />
             </div>
         </div>
     );

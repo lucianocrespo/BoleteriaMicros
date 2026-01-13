@@ -1,0 +1,153 @@
+/* LAYOUT PRINCIPAL */
+
+/* Contenedor principal de la página: Centra el contenido vertical y horizontalmente */
+.mis-boletos-container {
+    background-color: #f0f4f800; /* Fondo gris muy claro para la pagina */
+    min-height: 100vh; /* Ocupa toda la altura de la pantalla */
+    display: flex;
+    flex-direction: column; /* Apila elementos verticalmente */
+    align-items: center; /* Centra horizontalmente */
+    padding: 40px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #262626;
+}
+
+/* Limita el ancho del contenido para que no se estire demasiado en pantallas grandes */
+.mis-boletos-content {
+    width: 100%;
+    max-width: 600px;
+}
+
+.mis-boletos-container h2 {
+    color: #004d99; /* Azul oscuro para el título de la página */
+    margin-bottom: 30px;
+    font-size: 2em;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* TARJETA DEL BOLETO */
+
+/* Estilo de la Tarjeta de Boleto */
+.boleto-card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-left: 6px solid #007bff; /* Borde de color a la izquierda para destacar */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Suaviza la animacion hover */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: #333333;
+}
+
+/* Efecto de elevacion al pasar el mouse */
+.boleto-card:hover {
+    transform: translateY(-3px); /* Mueve la tarjeta hacia arriba */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); /* Aumenta la sombra */
+}
+
+/* Título de la ruta (Origen -> Destino) */
+.boleto-ruta {
+    margin: 0;
+    color: #007bff;
+    font-size: 1.25em;
+    font-weight: 700;
+    border-bottom: 1px solid #eeeeee; /* Linea divisoria sutil */
+    padding-bottom: 10px;
+    margin-bottom: 5px;
+}
+
+/* Contenedor flexible para los detalles (Fecha/Hora/Asiento) */
+.boleto-info {
+    display: flex;
+    justify-content: space-between; /* Distribuye espacio entre elementos */
+    flex-wrap: wrap; /* Permite que bajen si no hay espacio */
+    gap: 10px;
+    font-size: 1em;
+}
+
+.boleto-info p {
+    margin: 0;
+    color: #666666; /* Gris medio para las etiquetas */
+}
+
+/* Valores  */
+.boleto-info strong {
+    color: #000000; /* Negro puro para los datos importantes */
+    font-weight: 600;
+}
+
+/* Codigo ID pequeño abajo */
+.boleto-codigo {
+    font-size: 0.85em;
+    color: #999999; 
+    text-align: right;
+    margin-top: 5px;
+    font-family: monospace;
+}
+
+/* BOTONES DE ACCION */
+
+/* ESTILO DEL BOTON CANCELAR */
+.btn-cancelar {
+    background-color: #fff;
+    color: #dc3545; /* Rojo de alerta */
+    border: 1px solid #dc3545;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9em;
+    margin-top: 10px;
+    align-self: flex-end; /* Alinear a la derecha */
+    transition: all 0.2s;
+}
+
+.btn-cancelar:hover {
+    background-color: #dc3545;
+    color: white; /* Invierte colores al hover */
+
+/* Boton de Volver */
+.btn-volver-menu {
+    background-color:  white;
+    color: #007bff;
+    border: 2px solid #007bff;
+    padding: 12px 30px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1em;
+    transition: all 0.2s;
+    margin-top: 30px;
+    display: block;
+    width: 100%;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-volver-menu:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Mensajes de estado (Carga y Vacio) */
+.loading-text, .empty-message {
+    text-align: center;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    color: #666;
+    font-size: 1.1em;
+}
+
+.empty-message span {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #999;
+}

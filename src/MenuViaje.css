@@ -1,22 +1,25 @@
-/* Colores y Variables (Mantenemos la coherencia) */
+/* VARIABLES Y TEMATIZACION */
+
 :root {
-    --color-tarjeta: #ffffff;
+    --color-tarjeta: #3e5f94de;
     --color-texto: #262626;
-    --color-acento: #0095f6; /* Azul brillante para el botón */
+    --color-acento: #0095f6; /* Azul brillante para botones principales */
     --sombra-fuerte: 0 4px 10px rgba(0, 0, 0, 0.2);
     --sombra-sutil: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
-/* 1. Fondo de la Pantalla Principal (El Mapa de Buenos Aires) */
+/* LAYOUT PRINCIPAL Y FONDO */
+
+/* Fondo de la Pantalla Principal */
 .menu-viaje-container {
-    min-height: 100vh;
+    min-height: 100vh; /* Ocupa al menos toda la altura de la pantalla */
     width: 100%;
-    display: flex;
+    display: flex; /* Flexbox para estructura vertical */
     flex-direction: column;
     
-    /* 💡 Configuración de la imagen de fondo */
-    background-image: url('./assets/mapa-bsas.jpg'); /* AJUSTA LA RUTA DE TU IMAGEN */
-    background-size: cover;
+    /* Configuración de la imagen de fondo */
+    background-image: url('./assets/mapa-bsas.jpg'); 
+    background-size: cover; /* Escala la imagen para cubrir todo */
     background-position: center center;
     background-repeat: no-repeat;
     
@@ -25,29 +28,33 @@
     background-color: rgba(0, 0, 0, 0.5); /* Capa oscura (50% negro) */
     
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    color: var(--color-tarjeta); /* Color de texto claro para el header/texto libre */
+    color: var(--color-tarjeta); 
 }
 
-/* 2. Header (Simulando una barra de navegación limpia) */
+/* ENCABEZADO (HEADER) */
+
+/* Header: Contenedor para el boton de cerrar sesion */
 .menu-viaje-header {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-end; /* Alinea el contenido a la derecha */
     align-items: center;
     padding: 16px 20px;
-    background: rgba(0, 0, 0, 0.1); /* Ligeramente transparente */
+    background: rgba(0, 0, 0, 0.1); /* Fondo ligeramente transparente */
 }
 
-/* 3. Contenido Principal (Centrado) */
+/* CONTENIDO CENTRAL */
+
+/* Contenido Principal: Centra la tarjeta y los botones */
 .menu-viaje-main {
-    flex: 1;
+    flex: 1; /* Ocupa el espacio restante */
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center; /* Centra verticalmente el contenido */
+    align-items: center; /* Centrado horizontal */
+    justify-content: center; /* Centrado vertical */
     padding: 20px;
 }
 
-/* 💡 ESTILO DEL ESPACIO LIBRE PARA TEXTO (Caja tipo "Hero") */
+/* Tarjeta con mensaje de bienvenida */
 .texto-bienvenida-card {
     background-color: rgba(255, 255, 255, 0.9); /* Blanco semi-transparente */
     color: var(--color-texto);
@@ -56,7 +63,7 @@
     box-shadow: var(--sombra-fuerte);
     text-align: center;
     max-width: 500px;
-    margin-bottom: 40px; /* Separación del botón */
+    margin-bottom: 40px; /* Separacion con los botones de abajo */
 }
 
 .texto-bienvenida-card h1 {
@@ -71,11 +78,23 @@
     line-height: 1.4;
 }
 
-/* 💡 ESTILO DEL BOTÓN DE ACCIÓN ("Viajar") */
+/* BOTONERA PRINCIPAL */
+
+/* Contenedor para alinear los botones horizontalmente */
+.acciones-menu {
+    display: flex;
+    flex-direction: row; /* Alineación horizontal */
+    gap: 20px; /* Espacio chico entre el boton Viajar y Mis Boletos */
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap; /* Permite que bajen si la pantalla es muy chica */
+}
+
+/* Estilo del boton "Viajar" */
 .btn-viajar {
-    font-size: 28px; /* Un poco más grande y llamativo */
+    font-size: 28px; 
     padding: 20px 40px;
-    border-radius: 50px; /* Completamente redondo (pastilla) */
+    border-radius: 50px;
     background: var(--color-acento);
     color: white;
     border: none;
@@ -87,17 +106,58 @@
 
 .btn-viajar:hover {
     background-color: #007ac7;
-    transform: translateY(-2px); /* Pequeño efecto 3D al pasar el mouse */
+    transform: translateY(-2px); 
 }
+
+/* Estilo del boton "Mis Boletos" */
+.btn-boletos {
+    font-size: 24px; 
+    padding: 20px 40px;
+    border-radius: 50px; 
+    background: var(--color-acento);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: var(--sombra-fuerte);
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn-boletos:hover {
+    background-color: #007ac7;
+    transform: translateY(-2px); 
+}
+
+/* BOTON DE CERRAR SESION */
+
+/* Boton pequeño y rojo para salir */
+.btn-logout-menu {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9em;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: background-color 0.2s;
+}
+
+.btn-logout-menu:hover {
+    background-color: #c82333;  /* Rojo mas oscuro */
+}
+
+/* IMAGEN DE FONDO */
 
 .imagen {
     display: flex;
-    position: fixed;
+    position: fixed; /* Fija al fondo */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     justify-content: center;
     overflow: hidden;
-    z-index: -1; 
+    z-index: -1; /* Atras de todo */
 }

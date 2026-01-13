@@ -1,57 +1,70 @@
 import React, { useState, useEffect, useRef } from 'react';
+// Importamos hooks de React Router para navegacion y recibir datos entre pantallas
 import { useLocation, useNavigate } from 'react-router-dom';
-import { db } from './firebase-config'; 
-import { doc, getDoc, updateDoc } from 'firebase/firestore'; 
+// Importamos la conexion a Firebase y el servicio de autenticacion
+import { db, auth } from './firebase-config'; 
+// Importamos las funciones necesarias para interactuar con la base de datos Firestore
+import { doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore'; 
 import './Pago.css';
+import viaje from './assets/Imagenes/viaje.png';
 
 function Pago() {
     const location = useLocation();
     const navigate = useNavigate();
-    // Recuperamos los datos pasados desde la pantalla anterior
-    const { origen, destino, dia, horario, asiento } = location.state || {};
+    // Recuperamos los datos del viaje que el usuario selecciono en la pantalla anterior
+    const { origen, destino, dia, horario, asiento } = location.state || {}; // Usamos '|| {}' para evitar errores si alguien entra a esta pagina directamente sin datos
 
+    // Estados para los campos del formulario
     const [nombre, setNombre] = useState('');
     const [numeroTarjeta, setNumeroTarjeta] = useState('');
     const [fechaExpiracion, setFechaExpiracion] = useState('');
     const [codigoSeguridad, setCodigoSeguridad] = useState('');
+
+    // Estados para la interfaz (Mensajes y Carga)
     const [mensaje, setMensaje] = useState('');
     const [loading, setLoading] = useState(false);
     
-    // Estado del temporizador (5 minutos = 300 segundos)
-    const [segundosRestantes, setSegundosRestantes] = useState(300);
-    const pagoExitosoRef = useRef(false); // Para controlar si ya pagó
+    // Estado del temporizador
+    const [segundosRestantes, setSegundosRestantes] = useState(300); // 300 segundos = 5 minutos
+    const pagoExitosoRef = useRef(false); // Referencia para saber si el pago fue exitoso
 
-    // Cuenta regresiva
+    // Efecto de Cuenta Regresiva: se ejecuta al cargar la pantalla
     useEffect(() => {
-        if (!asiento) return; // Si no hay asiento (acceso directo), no iniciar timer
+        if (!asiento) return; // Si no hay asiento seleccionado, no iniciamos el reloj
 
         const intervalo = setInterval(() => {
             setSegundosRestantes((prev) => {
+                // Si el tiempo llega a 0 (o menos), detenemos el reloj y ejecutamos la accion de tiempo agotado
                 if (prev <= 1) {
                     clearInterval(intervalo);
-                    handleTimeout(); // Se acabo el tiempo
+                    handleTimeout();
                     return 0;
                 }
-                return prev - 1;
+                return prev - 1; // Restamos un segundo
             });
         }, 1000);
 
-        return () => clearInterval(intervalo);
+        return () => clearInterval(intervalo); //Esta funcion se ejecuta si el usuario sale de la pantalla
     }, [asiento]);
 
-    // Formato de tiempo MM:SS
+    // Funcion para mostrar el tiempo en formato minutos:segundos
     const formatoTiempo = (segundos) => {
         const m = Math.floor(segundos / 60);
         const s = segundos % 60;
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
-    // Funcion para liberar el asiento
+    /*
+        FUNCIÓN CRÍTICA: Liberar Asiento (Rollback). Si el usuario se arrepiente, cierra la página o se acaba el tiempo, 
+        debemos borrar su reserva temporal de la base de datos para que otro pueda comprar el asiento.
+     */
     const liberarAsiento = async () => {
         if (!origen || !destino || !horario || !asiento) return;
 
         try {
             console.log("Liberando asiento...");
+
+            // Buscamos el documento donde estan guardados los horarios
             const claveRuta = `${origen}-${destino}`;
             const docRef = doc(db, "config", "horariosData");
             const docSnap = await getDoc(docRef);
@@ -63,15 +76,16 @@ function Pago() {
                 
                 if (viajeIndex !== -1) {
                     const viaje = viajesParaRuta[viajeIndex];
-                    // Convertimos string a array, filtramos el asiento y volvemos a string
+
+                    // Convertimos el texto de asientos ocupados en una lista (Array) para manipularla
                     let ocupadosArray = viaje.asientosOcupados 
                         ? viaje.asientosOcupados.split(',').map(s => parseInt(s.trim()))
                         : [];
                     
-                    // sacamos el asiento actual
+                    // Sacamos el asiento actual de la lista de ocupados
                     ocupadosArray = ocupadosArray.filter(a => a !== asiento);
                     
-                    // Guardamos de nuevo ("null" si el array queda vacio)
+                    // Guardamos la nueva lista en la base de datos
                     viaje.asientosOcupados = ocupadosArray.length > 0 ? ocupadosArray.join(', ') : "null";
                     horariosMap[claveRuta][viajeIndex] = viaje;
 
@@ -84,46 +98,78 @@ function Pago() {
         }
     };
 
-    // Tiempo agotado
+    // Accion cuando se acaba el tiempo
     const handleTimeout = async () => {
-        if (pagoExitosoRef.current) return; // Si ya pago, no hacer nada
+        if (pagoExitosoRef.current) return; // Si ya pagó, no hacemos nada
         setMensaje("⏳ Tiempo agotado. El asiento ha sido liberado.");
-        setLoading(true);
-        await liberarAsiento();
-        setTimeout(() => navigate('/'), 3000); // Volver al inicio
+        setLoading(true); // Bloqueamos la pantalla
+        await liberarAsiento(); // Liberamos el asiento en la BD
+        setTimeout(() => navigate(-1), 3000); // Redirigimos al inicio despues de 3 segundos para que el usuario lea el mensaje
     };
 
-    // Boton volver (Cancelar reserva)
+    // Accion del boton "Cancelar Reserva" o "Volver"
     const handleVolver = async () => {
+        // Si ya pago, "volver" regresa a la pantalla anterior sin borrar nada
         if (pagoExitosoRef.current) {
             navigate(-1);
             return;
         }
         
+        // Si no pago, le advertimos que perdera su reserva
         if (window.confirm("Si vuelve atrás, perderá su reserva temporal. ¿Está seguro?")) {
             setLoading(true);
-            await liberarAsiento();
-            navigate(-1);
+            await liberarAsiento(); // Borramos la reserva
+            navigate(-1); // Volvemos atrás
         }
     };
 
+    // Accion del formulario al hacer clic en "Pagar"
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Previene la recarga de la página
         setLoading(true);
         setMensaje('');
 
-        // Simulacion de pago exitoso (El asiento ya esta reservado desde la pantalla anterior)
-        setTimeout(() => {
-            pagoExitosoRef.current = true; // Marcamos exito para que el timer no libere
-            setMensaje('¡Pago realizado con éxito! Tu asiento está confirmado.');
-            
-            setTimeout(() => {
-                navigate('/MenuViaje'); 
-            }, 2000); 
+        // Simulamos un tiempo de espera de 2 segundos (como si procesara una tarjeta real)
+        setTimeout(async () => {
+            try {
+                // Obtenemos el usuario que inicio sesion
+                const user = auth.currentUser;
+                
+                if (user) {
+                    // Guardamos el boleto en la coleccion "boletos" en la BD
+                    await addDoc(collection(db, "boletos"), {
+                        uidUsuario: user.uid, // Esto vincula el boleto con el usuario
+                        origen,
+                        destino,
+                        dia,
+                        horario,
+                        asiento,
+                        nombrePasajero: nombre, // Guardamos el nombre que puso en el formulario
+                        fechaCompra: new Date().toISOString()
+                    });
+                    
+                    console.log("Boleto guardado exitosamente en colección 'boletos'");
+                } else {
+                    console.warn("ATENCIÓN: Usuario no logueado. El boleto no se guardará en el historial.");
+                }
+
+                // Confirmacion de pago exitoso
+                pagoExitosoRef.current = true; // Confirmamos pago para que el timer no libere el asiento
+                setMensaje('¡Pago realizado con éxito! Tu boleto ha sido generado.');
+                
+                // Redirigimos al usuario al menu principal
+                setTimeout(() => {
+                    navigate('/MenuViaje'); 
+                }, 2000);
+
+            } catch (error) {
+                console.error("Error al generar el boleto:", error);
+                setMensaje("Pago procesado, pero hubo un error generando el comprobante.");
+            }
         }, 2000);
     };
 
-    // Si alguien entra directo a /pago sin datos
+    // Validacion de seguridad: Si no hay datos de asiento, muestra error
     if (!asiento) {
         return (
             <div className="pago-container">
@@ -140,14 +186,16 @@ function Pago() {
         <div className="pago-container">
             <div className="pago-card">
                 
-                {/* Header con timer */}
+                {/* Encabezado con Cronometro */}
                 <div className="pago-header">
                     <h2>Formulario de Pago</h2>
+                    {/* El estilo cambia a rojo si queda menos de 1 minuto */}
                     <div className={`timer-box ${segundosRestantes < 60 ? 'timer-danger' : ''}`}>
                         ⏱️ {formatoTiempo(segundosRestantes)}
                     </div>
                 </div>
                 
+                {/* Resumen de lo que se esta pagando */}
                 <div className="resumen-viaje">
                     <h4>Reserva Temporal</h4>
                     <p>
@@ -158,8 +206,10 @@ function Pago() {
                     </p>
                 </div>
                 
+                {/* Mensajes de exito o error */}
                 {mensaje && <div className={`mensaje-pago ${mensaje.includes('éxito') ? 'success' : 'error'}`}>{mensaje}</div>}
                 
+                {/* Formulario (se oculta si el tiempo se agota) */}
                 {!mensaje.includes('agotado') && (
                     <form className="pago-form" onSubmit={handleSubmit}>
                         <label>
@@ -217,6 +267,11 @@ function Pago() {
                         </div>
                     </form>
                 )}
+            </div>
+            
+            {/* Imagen decorativa de fondo */}
+            <div className="imagen">
+                <img src={viaje} alt="Viaje" />
             </div>
         </div>
     );
