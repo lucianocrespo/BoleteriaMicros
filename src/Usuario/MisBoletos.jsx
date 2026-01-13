@@ -13,6 +13,15 @@ const MisBoletos = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    //determinamos si el viaje es pasado (Fecha Viaje < Fecha Actual)
+    // (Para deshabilitar la cancelacion en viajes antiguos).
+    const verificarSiYaPaso = (fechaStr, horaStr) => {
+        if (!fechaStr || !horaStr) return false;
+        const fechaViaje = new Date(`${fechaStr}T${horaStr}`);
+        const ahora = new Date();
+        return fechaViaje < ahora;
+    };
+
     // Funcion para obtener los boletos, se ejecuta al montar el componente para traer los boletos del usuario actual
     useEffect(() => {
         const fetchBoletos = async () => {
@@ -35,6 +44,9 @@ const MisBoletos = () => {
                     ...doc.data()
                 }));
                 
+                // Ordenamiento por fecha (mas reciente primero)
+                boletosData.sort((a, b) => new Date(b.fechaCompra) - new Date(a.fechaCompra));
+
                 setBoletos(boletosData);
 
             } catch (error) {
@@ -117,38 +129,45 @@ const MisBoletos = () => {
                 {loading ? (
                     <p className="loading-text">Procesando...</p>
                 ) : boletos.length > 0 ? (
-                    boletos.map(boleto => (
-                        <div key={boleto.id} className="boleto-card">
-                            <h3 className="boleto-ruta">{boleto.origen} ➝ {boleto.destino}</h3>
-                            
-                            <div className="boleto-info">
-                                <p><strong>Fecha:</strong> {boleto.dia}</p>
-                                <p><strong>Hora:</strong> {boleto.horario}</p>
-                            </div>
-                            
-                            <div className="boleto-info">
-                                <p><strong>Asiento:</strong> #{boleto.asiento}</p>
-                                <p><strong>Pasajero:</strong> {boleto.nombrePasajero || 'Tú'}</p>
-                            </div>
+                    boletos.map(boleto => {
+                        const esViajePasado = verificarSiYaPaso(boleto.dia, boleto.horario);
 
-                            <p className="boleto-codigo">ID: {boleto.id}</p>
+                        return (
+                            <div key={boleto.id} className={`boleto-card ${esViajePasado ? 'pasado' : ''}`}>
+                                <h3 className="boleto-ruta">{boleto.origen} ➝ {boleto.destino}</h3>
+                                
+                                <div className="boleto-info">
+                                    <p><strong>Fecha:</strong> {boleto.dia}</p>
+                                    <p><strong>Hora:</strong> {boleto.horario}</p>
+                                </div>
+                                
+                                <div className="boleto-info">
+                                    <p><strong>Asiento:</strong> #{boleto.asiento}</p>
+                                    <p><strong>Pasajero:</strong> {boleto.nombrePasajero || 'Tú'}</p>
+                                </div>
 
-                            {/* Boton para cancelar el boleto */}
-                            <button 
-                                className="btn-cancelar"
-                                onClick={() => handleCancelar(boleto)}
-                            >
-                                Cancelar Boleto
-                            </button>
-                        </div>
-                    ))
+                                <p className="boleto-codigo">ID: {boleto.id}</p>
+
+                                {/* Renderizado condicional: Si ya paso, mostramos etiqueta, si no, boton cancelar */}
+                                {esViajePasado ? (
+                                    <div className="etiqueta-finalizado">✅ Viaje Finalizado</div>
+                                ) : (
+                                    <button 
+                                        className="btn-cancelar"
+                                        onClick={() => handleCancelar(boleto)}
+                                    >
+                                        Cancelar Boleto
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })
                 ) : (
                     <div className="empty-message">
                         <p>No tienes boletos comprados.</p>
                         <span>(Aquí aparecerán tus reservas confirmadas)</span>
                     </div>
                 )}
-                
                 <button 
                     className="btn-volver-menu" 
                     onClick={() => navigate('/MenuViaje')}
