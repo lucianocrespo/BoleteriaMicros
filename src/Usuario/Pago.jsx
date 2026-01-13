@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 // Importamos hooks de React Router para navegacion y recibir datos entre pantallas
 import { useLocation, useNavigate } from 'react-router-dom';
 // Importamos la conexion a Firebase y el servicio de autenticacion
-import { db, auth } from './firebase-config'; 
+import { db, auth } from '../firebase-config'; 
 // Importamos las funciones necesarias para interactuar con la base de datos Firestore
 import { doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore'; 
 import './Pago.css';
-import viaje from './assets/Imagenes/viaje.png';
+import viaje from '../assets/Imagenes/viaje.png';
 
 function Pago() {
     const location = useLocation();
@@ -55,7 +55,7 @@ function Pago() {
     };
 
     /*
-        FUNCIÓN CRÍTICA: Liberar Asiento (Rollback). Si el usuario se arrepiente, cierra la página o se acaba el tiempo, 
+        Liberar Asiento (Rollback): Si el usuario se arrepiente, cierra la página o se acaba el tiempo, 
         debemos borrar su reserva temporal de la base de datos para que otro pueda comprar el asiento.
      */
     const liberarAsiento = async () => {

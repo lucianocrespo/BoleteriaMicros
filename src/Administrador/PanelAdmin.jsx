@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db, auth } from './firebase-config';
+import { db, auth } from '../firebase-config';
 // Importamos herramientas avanzadas de Firestore:
 // - arrayUnion/arrayRemove: Para agregar/quitar elementos de arrays (como ciudades) sin leer todo el documento.
 // - collection: Para referencias a colecciones completas (necesario para listar usuarios).

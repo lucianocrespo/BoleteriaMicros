@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from './firebase-config'; // Importamos la DB
+import { db } from '../firebase-config'; // Importamos la DB
 import { doc, getDoc } from 'firebase/firestore'; // Importamos funciones de Firestore
 // Importamos estilos e imagen
 import './Viajar.css';
-import viaje from './assets/Imagenes/viaje.png';
+import viaje from '../assets/Imagenes/viaje.png';
 
 function Viajar() {
     // Estados del formulario

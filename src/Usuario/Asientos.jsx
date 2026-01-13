@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 // Importamos hooks de navegación para recibir datos (useLocation) y cambiar de paqgina (useNavigate)
 import { useLocation, useNavigate } from 'react-router-dom'; 
 // Importamos la configuración de la base de datos y las funciones necesarias de Firestore
-import { db } from './firebase-config';
+import { db } from '../firebase-config';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 // Importamos estilos e imagenes
 import './Asientos.css';
-import viaje from './assets/Imagenes/viaje.png';
+import viaje from '../assets/Imagenes/viaje.png';
 
 // El layout estatico de los asientos (representa la distribucion de los asientos)
 const LAYOUT_ASIENTOS = [

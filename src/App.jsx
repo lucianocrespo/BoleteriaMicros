@@ -2,15 +2,15 @@ import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom'; // Importamos los componentes necesarios de 'react-router-dom' para manejar la navegación entre páginas
 import './App.css'; 
 // Importamos cada pantalla de nuestra aplicación para poder usarla en las rutas
-import Viajar from './Viajar';
-import Horarios from './Horarios';
-import Asientos from './Asientos';
-import Pago from './Pago';
+import Viajar from './Usuario/Viajar';
+import Horarios from './Usuario/Horarios';
+import Asientos from './Usuario/Asientos';
+import Pago from './Usuario/Pago';
 import Login from './Login';
 import Registro from './Registro';
-import MenuViaje from './MenuViaje';
-import MisBoletos from './MisBoletos';
-import PanelAdmin from './PanelAdmin';
+import MenuViaje from './Usuario/MenuViaje';
+import MisBoletos from './Usuario/MisBoletos';
+import PanelAdmin from './Administrador/PanelAdmin';
 
 function App() {
   return (

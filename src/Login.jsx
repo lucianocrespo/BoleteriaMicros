@@ -56,14 +56,14 @@ const Login = ({ onBack }) => {
                 // Logica de Redireccion segun el rol
                 if (userData.esAdmin === true) {
                     console.log("Usuario Administrador detectado");
-                    navigate('/PanelAdmin'); // Redirige al panel de admin
+                    navigate('/Administrador/PanelAdmin'); // Redirige al panel de admin
                 } else {
                     console.log("Usuario Normal detectado");
                     navigate('/MenuViaje'); // Redirige a la app normal
                 }
             } else {
                 // Si no existe el perfil en Firestore (raro, pero posible), ir al menu normal
-                navigate('/MenuViaje');
+                navigate('/Usuario/MenuViaje');
             }
         } catch (firebaseError) {
             // Manejo de errores especificos para dar feedback util al usuario

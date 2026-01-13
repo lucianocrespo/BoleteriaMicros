@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db, auth } from './firebase-config';
+import { db, auth } from '../firebase-config';
 // A diferencia de los imports de las demas pantallas, a esta se le agrega deleteDoc y updateDoc para poder modificar la base de datos
 import { collection, query, where, getDocs, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 // Importacion de estilos e imagen
 import './MisBoletos.css';
-import provbagoogleearth from './assets/Imagenes/provbagoogleearth.png'; 
+import provbagoogleearth from '../assets/Imagenes/provbagoogleearth.png'; 
 
 const MisBoletos = () => {
     // Estados para almacenar la lista de boletos y el estado de carga

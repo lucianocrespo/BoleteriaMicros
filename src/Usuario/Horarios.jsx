@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom'; // Importamos hooks de navegación:
 // Importamos la instancia de la base de datos y las funciones de Firestore necesarias
-import { db } from './firebase-config'; 
+import { db } from '../firebase-config'; 
 import { doc, getDoc } from 'firebase/firestore'; 
 // Importamos estilos e imagenes
 import './Horarios.css';
-import viaje from './assets/Imagenes/viaje.png';
+import viaje from '../assets/Imagenes/viaje.png';
 
 // Muestra la lista de viajes disponibles basándose en el origen y destino seleccionados
 const Horarios = () => {
