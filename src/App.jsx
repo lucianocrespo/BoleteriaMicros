@@ -11,6 +11,7 @@ import Registro from './Registro';
 import MenuViaje from './Usuario/MenuViaje';
 import MisBoletos from './Usuario/MisBoletos';
 import PanelAdmin from './Administrador/PanelAdmin';
+import InicializarDB from './InicializarDB'; // Importamos el script de instalacion
 
 function App() {
   return (
@@ -34,6 +35,9 @@ function App() {
 
       {/* Panel de administracion */}
       <Route path="/PanelAdmin" element={<PanelAdmin />} />
+
+      {/* Ruta de instalacion (Solo para el despliegue inicial) */}
+        <Route path="/setup-db" element={<InicializarDB />} />
       
     </Routes>
   );
