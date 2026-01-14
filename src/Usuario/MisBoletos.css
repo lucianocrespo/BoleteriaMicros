@@ -109,6 +109,7 @@
 .btn-cancelar:hover {
     background-color: #dc3545;
     color: white; /* Invierte colores al hover */
+}
 
 /* Boton de Volver */
 .btn-volver-menu {
