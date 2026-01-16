@@ -1,3 +1,6 @@
+/* LAYOUT GENERAL */
+
+/* Contenedor principal que abarca toda la pantalla */
 .admin-container {
     min-height: 100vh;
     background-color: #f4f6f8;
@@ -5,6 +8,7 @@
     color: #333;
 }
 
+/* Encabezado superior */
 .admin-header {
     background-color: #343a40;
     color: white;
@@ -14,6 +18,7 @@
     align-items: center;
 }
 
+/* Boton de cerrar sesion en el header */
 .btn-logout {
     background: #dc3545;
     color: white;
@@ -24,12 +29,15 @@
     font-weight: 600;
 }
 
+/* NAVEGACION POR PESTAÑAS */
+
 .admin-tabs {
     display: flex;
     background: white;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
+/* Estilo base de cada pestaña */
 .admin-tabs button {
     flex: 1;
     padding: 15px;
@@ -46,6 +54,7 @@
     background-color: #f8f9fa;
 }
 
+/* Estado activo de la pestaña */
 .admin-tabs button.active {
     border-bottom: 3px solid #007bff;
     color: #007bff;
@@ -53,12 +62,14 @@
     background-color: #eef5ff;
 }
 
+/* Contenedor del contenido de las pestañas */
 .admin-content {
     padding: 30px;
     max-width: 900px;
     margin: 0 auto;
 }
 
+/* Tarjeta blanca donde va el contenido */
 .tab-section {
     background: white;
     padding: 25px;
@@ -72,7 +83,9 @@
     color: #007bff;
 }
 
-/* Formularios generales */
+/* FORMULARIOS Y CONTROLES */
+
+/* Formularios de agregar */
 .add-form {
     display: flex;
     gap: 10px;
@@ -83,14 +96,14 @@
 }
 
 .add-form input {
-    flex: 1;
+    flex: 1; /* El input ocupa todo el espacio disponible */
     padding: 10px;
     border: 1px solid #ced4da;
     border-radius: 4px;
 }
 
 .btn-add {
-    background: #28a745;
+    background: #28a745; /* Verde para acciones positivas (Crear/Agregar) */
     color: white;
     border: none;
     padding: 10px 20px;
@@ -103,7 +116,8 @@
     background: #218838;
 }
 
-/* 💡 NUEVOS ESTILOS PARA FORMULARIO DE USUARIO */
+/* FORMULARIO DE USUARIO */
+
 .add-form-user {
     background: #f1f8ff;
     padding: 20px;
@@ -118,22 +132,23 @@
 .btn-add-user { background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; }
 .btn-add-user:hover { background: #0056b3; }
 
-/* Listas */
+/* LISTAS (Ciudades) */
+
 .admin-list {
-    list-style: none;
+    list-style: none; /* Saca los puntos de la lista */
     padding: 0;
 }
 
 .admin-list li {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; 
     align-items: center;
     padding: 10px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #eee; /* Linea divisoria entre items */
 }
 
 .btn-delete {
-    background: #ff4d4d;
+    background: #ff4d4d; /* Rojo claro para borrar */
     color: white;
     border: none;
     padding: 5px 10px;
@@ -146,7 +161,8 @@
     background: #cc0000;
 }
 
-/* Rutas */
+/* GESTION DE RUTAS */
+
 .ruta-item {
     margin-bottom: 10px;
     border: 1px solid #dee2e6;
@@ -162,11 +178,13 @@
     color: #495057;
 }
 
+/* Contenido desplegable */
 .ruta-detalles {
     padding: 10px;
     background: white;
 }
 
+/* Fila individual de horario */
 .horario-mini-card {
     display: flex;
     align-items: center;
@@ -180,6 +198,7 @@
     border-bottom: none;
 }
 
+/* Etiquetas de informacion */
 .info-pill {
     background-color: #f1f3f5;
     padding: 5px 10px;
@@ -199,7 +218,7 @@
     gap: 5px;
 }
 
-/* Edición en línea de horarios */
+/* Edicion en linea de horarios */
 .edit-inline-form {
     display: flex;
     align-items: center;
@@ -251,6 +270,7 @@
 .btn-cancel-mini { background-color: #6c757d; }
 
 /* Tabla de usuarios */
+
 .table-responsive {
     overflow-x: auto;
 }
@@ -273,6 +293,7 @@
     color: #495057;
 }
 
+/* Estilos para inputs dentro de la tabla (modo edicion) */
 .admin-table input[type="text"], 
 .admin-table input[type="email"] {
     width: 90%;
@@ -286,6 +307,7 @@
     gap: 5px;
 }
 
+/* Boton editar */
 .btn-edit {
     background-color: #ffc107;
     color: #212529;
@@ -296,6 +318,7 @@
     font-size: 0.9em;
 }
 
+/* Boton guardar */
 .btn-save {
     background-color: #28a745;
     color: white;
@@ -306,6 +329,7 @@
     font-size: 0.9em;
 }
 
+/* Boton de cancelar */
 .btn-cancel {
     background-color: #6c757d;
     color: white;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase-config';
-// 💡 Importamos initializeApp para el truco de la app secundaria
+// Importamos initializeApp para crear una app secundaria temporal (esto es necesario para crear usuarios sin cerrar la sesion del admin)
 import { initializeApp } from 'firebase/app'; 
 import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 // Importamos herramientas avanzadas de Firestore:
@@ -17,11 +17,11 @@ const PanelAdmin = () => {
     const [activeTab, setActiveTab] = useState('ciudades'); 
     const [loading, setLoading] = useState(false);
 
-    // ESTADOS PARA GESTION DE CIUDADES
+    // GESTION DE CIUDADES
     const [ciudades, setCiudades] = useState([]);
     const [nuevaCiudad, setNuevaCiudad] = useState('');
 
-    // ESTADOS PARA GESTION DE RUTAS Y HORARIOS
+    // GESTION DE RUTAS Y HORARIOS
     // 'rutas' es un Objeto (Map) traído de Firebase: { "Origen-Destino": [Array de horarios] }
     const [rutas, setRutas] = useState({});
     const [nuevaRutaOrigen, setNuevaRutaOrigen] = useState('');
@@ -30,12 +30,12 @@ const PanelAdmin = () => {
     // Estado temporal para manejar la edicion de un horario especifico sin abrir otra pagina
     const [editingSchedule, setEditingSchedule] = useState(null);
 
-    // ESTADOS PARA GESTION DE USUARIOS
+    // GESTION DE USUARIOS
     const [usuarios, setUsuarios] = useState([]);
     const [editingUserId, setEditingUserId] = useState(null); // ID del usuario en edicion
     const [editFormData, setEditFormData] = useState({}); // Datos del formulario de edicion
 
-    // 💡 NUEVOS ESTADOS: Formulario para crear usuario
+    // Formulario para crear usuario
     const [nuevoUsNombre, setNuevoUsNombre] = useState('');
     const [nuevoUsEmail, setNuevoUsEmail] = useState('');
     const [nuevoUsPass, setNuevoUsPass] = useState('');
@@ -48,9 +48,9 @@ const PanelAdmin = () => {
         cargarUsuarios();
     }, []);
 
-    /**
-     * Carga la configuracion global (Ciudades y Rutas) desde la coleccion 'config'.
-     * Usamos 'getDoc' porque sabemos los IDs específicos de los documentos ('ciudades', 'horariosData').
+    /*
+       Carga la configuracion global (Ciudades y Rutas) desde la coleccion 'config'.
+       Usamos 'getDoc' porque sabemos los IDs especificos de los documentos ('ciudades', 'horariosData').
      */
     const cargarDatosGenerales = async () => {
         setLoading(true);
@@ -67,9 +67,9 @@ const PanelAdmin = () => {
         }
     };
 
-    /**
-     * Carga la lista de usuarios.
-     * Usamos 'getDocs' + 'collection' para traer TODOS los documentos de la coleccion 'Usuarios'.
+    /*
+       Carga la lista de usuarios.
+       Usamos 'getDocs' + 'collection' para traer TODOS los documentos de la coleccion 'Usuarios'.
      */
     const cargarUsuarios = async () => {
         try {
@@ -80,9 +80,7 @@ const PanelAdmin = () => {
         } catch (error) { console.error(error); }
     };
 
-    // =========================================================================
-    // 💡 LÓGICA DE CREACIÓN DE USUARIO (SIN CERRAR SESIÓN DEL ADMIN)
-    // =========================================================================
+    // LOGICA DE CREACION DE USUARIO (SIN CERRAR SESION DEL ADMIN)
     const crearUsuario = async () => {
         if (!nuevoUsEmail || !nuevoUsPass || !nuevoUsNombre) {
             alert("Completa al menos Email, Contraseña y Nombre.");
@@ -90,20 +88,20 @@ const PanelAdmin = () => {
         }
 
         try {
-            // 1. Obtenemos la configuración de la app actual
+            // Obtenemos la configuracion de la app actual
             const firebaseConfig = auth.app.options;
 
-            // 2. Inicializamos una APP SECUNDARIA temporal
-            // Esto es necesario porque createUserWithEmailAndPassword loguea automáticamente al usuario.
-            // Al hacerlo en una app secundaria, la sesión del Admin en la app principal no se ve afectada.
+            // Inicializamos una app secundaria temporal
+            // Esto es necesario porque createUserWithEmailAndPassword loguea automaticamente al usuario.
+            // Al hacerlo en una app secundaria, la sesion del Admin en la app principal no se ve afectada.
             const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
             const secondaryAuth = getAuth(secondaryApp);
 
-            // 3. Creamos el usuario en Auth (en la app secundaria)
+            // Creamos el usuario en Auth (en la app secundaria)
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, nuevoUsEmail, nuevoUsPass);
             const newUser = userCredential.user;
 
-            // 4. Creamos el documento en Firestore (Usamos la DB principal 'db')
+            // Creamos el documento en Firestore (Usamos la DB principal 'db')
             await setDoc(doc(db, "Usuarios", newUser.uid), {
                 uid: newUser.uid,
                 nombre: nuevoUsNombre,
@@ -113,10 +111,10 @@ const PanelAdmin = () => {
                 fechaRegistro: new Date().toISOString()
             });
 
-            // 5. Limpiamos: Cerramos sesión en la app secundaria y la eliminamos (opcional, JS la limpia eventualmente)
+            // Limpiamos: Cerramos sesion en la app secundaria y la eliminamos
             await signOut(secondaryAuth);
             
-            // 6. Actualizamos la tabla y limpiamos formulario
+            // Actualizamos la tabla y limpiamos formulario
             alert("Usuario creado exitosamente.");
             setNuevoUsNombre(''); setNuevoUsEmail(''); setNuevoUsPass(''); setNuevoUsUser(''); setNuevoUsEsAdmin(false);
             cargarUsuarios();
@@ -142,8 +140,8 @@ const PanelAdmin = () => {
         setEditingSchedule(null);
     };
 
-    /**
-     * Guarda los cambios de un horario.
+    /*
+       Guarda los cambios de un horario.
        Firestore no permite actualizar un índice especifico de un array directamente.
        Entonces leemos el array, lo modificamos localmente y reescribimos el array completo para esa clave.
      */
@@ -371,7 +369,7 @@ const PanelAdmin = () => {
                     </div>
                 )}
 
-                {/* --- PESTAÑA USUARIOS --- */}
+                {/* PESTAÑA USUARIOS */}
                 {!loading && activeTab === 'usuarios' && (
                     <div className="tab-section">
                         <h3>Gestión de Usuarios</h3>
