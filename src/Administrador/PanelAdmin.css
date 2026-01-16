@@ -1,6 +1,3 @@
-/* LAYOUT GENERAL */
-
-/* Contenedor principal que abarca toda la pantalla */
 .admin-container {
     min-height: 100vh;
     background-color: #f4f6f8;
@@ -8,17 +5,15 @@
     color: #333;
 }
 
-/* Encabezado superior oscuro */
 .admin-header {
     background-color: #343a40;
     color: white;
     padding: 15px 30px;
     display: flex;
-    justify-content: space-between; /* Titulo a la izq, boton a la der */
+    justify-content: space-between;
     align-items: center;
 }
 
-/* Boton de cerrar sesion en el header */
 .btn-logout {
     background: #dc3545;
     color: white;
@@ -29,23 +24,20 @@
     font-weight: 600;
 }
 
-/* NAVEGACION POR PESTAÑAS */
-
 .admin-tabs {
-    display: flex; /* Pestañas en fila */
+    display: flex;
     background: white;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-/* Estilo base de cada pestaña */
 .admin-tabs button {
-    flex: 1; /* Todas ocupan el mismo ancho */
+    flex: 1;
     padding: 15px;
     border: none;
     background: none;
     cursor: pointer;
     font-size: 16px;
-    border-bottom: 3px solid transparent; /* Borde invisible para evitar saltos al activar */
+    border-bottom: 3px solid transparent;
     transition: all 0.2s;
     color: #555;
 }
@@ -54,7 +46,6 @@
     background-color: #f8f9fa;
 }
 
-/* Estado activo de la pestaña */
 .admin-tabs button.active {
     border-bottom: 3px solid #007bff;
     color: #007bff;
@@ -62,14 +53,12 @@
     background-color: #eef5ff;
 }
 
-/* Contenedor del contenido de las pestañas */
 .admin-content {
     padding: 30px;
     max-width: 900px;
-    margin: 0 auto; /* Centrado horizontal */
+    margin: 0 auto;
 }
 
-/* Tarjeta blanca donde va el contenido */
 .tab-section {
     background: white;
     padding: 25px;
@@ -83,9 +72,7 @@
     color: #007bff;
 }
 
-/* FORMULARIOS Y CONTROLES */
-
-/* Formularios de agregar */
+/* Formularios generales */
 .add-form {
     display: flex;
     gap: 10px;
@@ -96,14 +83,14 @@
 }
 
 .add-form input {
-    flex: 1; /* El input ocupa todo el espacio disponible */
+    flex: 1;
     padding: 10px;
     border: 1px solid #ced4da;
     border-radius: 4px;
 }
 
 .btn-add {
-    background: #28a745; /* Verde para acciones positivas (Crear/Agregar) */
+    background: #28a745;
     color: white;
     border: none;
     padding: 10px 20px;
@@ -116,23 +103,37 @@
     background: #218838;
 }
 
-/* LISTAS (Ciudades) */
+/* 💡 NUEVOS ESTILOS PARA FORMULARIO DE USUARIO */
+.add-form-user {
+    background: #f1f8ff;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #d0e7ff;
+    margin-bottom: 30px;
+}
+.add-form-user h4 { margin-top: 0; margin-bottom: 15px; color: #0056b3; }
+.form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+.form-row input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+.form-row-check { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.btn-add-user { background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.btn-add-user:hover { background: #0056b3; }
 
+/* Listas */
 .admin-list {
-    list-style: none; /* Saca los puntos de la lista */
+    list-style: none;
     padding: 0;
 }
 
 .admin-list li {
     display: flex;
-    justify-content: space-between; /* Texto a la izq, boton a la der */
+    justify-content: space-between;
     align-items: center;
     padding: 10px;
-    border-bottom: 1px solid #eee; /* Linea divisoria entre items */
+    border-bottom: 1px solid #eee;
 }
 
 .btn-delete {
-    background: #ff4d4d; /* Rojo claro para borrar */
+    background: #ff4d4d;
     color: white;
     border: none;
     padding: 5px 10px;
@@ -145,8 +146,7 @@
     background: #cc0000;
 }
 
-/* GESTIÓN DE RUTAS */
-
+/* Rutas */
 .ruta-item {
     margin-bottom: 10px;
     border: 1px solid #dee2e6;
@@ -162,26 +162,24 @@
     color: #495057;
 }
 
-/* Contenido desplegable */
 .ruta-detalles {
     padding: 10px;
     background: white;
 }
 
-/* Fila individual de horario */
 .horario-mini-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 8px;
-    border-bottom: 1px dashed #ccc; /* Linea punteada divisoria */
+    border-bottom: 1px dashed #ccc;
+    font-size: 0.9em;
 }
 
 .horario-mini-card:last-child {
     border-bottom: none;
 }
 
-/* Etiquetas de informacion */
 .info-pill {
     background-color: #f1f3f5;
     padding: 5px 10px;
@@ -201,9 +199,7 @@
     gap: 5px;
 }
 
-/* EDICION EN LINEA */
-
-/* Formulario que reemplaza al texto al editar */
+/* Edición en línea de horarios */
 .edit-inline-form {
     display: flex;
     align-items: center;
@@ -218,20 +214,19 @@
 }
 
 .edit-inline-form input {
-    width: 80px; /* Ancho fijo para inputs pequeños (hora/precio) */
+    width: 80px;
     padding: 5px;
     border: 1px solid #ced4da;
     border-radius: 3px;
 }
 
-/* Botones pequeños de guardar/cancelar */
 .edit-buttons {
     margin-left: auto; /* Empuja los botones a la derecha */
     display: flex;
     gap: 5px;
 }
 
-/* Estilos compartidos para botones mini */
+/* Botones mini */
 .btn-edit-mini, .btn-save-mini {
     background-color: #ffc107;
     border: none;
@@ -244,7 +239,7 @@
 .btn-save-mini { background-color: #28a745; color: white; }
 
 .btn-delete-mini, .btn-cancel-mini {
-    background-color: #dc3545; /* Rojo (Borrar/Cancelar) */
+    background-color: #dc3545;
     color: white;
     border: none;
     padding: 5px 8px;
@@ -255,15 +250,14 @@
 
 .btn-cancel-mini { background-color: #6c757d; }
 
-/* TABLA DE USUARIOS */
-
+/* Tabla de usuarios */
 .table-responsive {
-    overflow-x: auto; /* Permite scroll horizontal en pantallas chicas */
+    overflow-x: auto;
 }
 
 .admin-table {
     width: 100%;
-    border-collapse: collapse; /* Elimina espacios entre bordes de celdas */
+    border-collapse: collapse;
     margin-top: 10px;
 }
 
@@ -279,7 +273,6 @@
     color: #495057;
 }
 
-/* Estilos para inputs dentro de la tabla (modo edicion) */
 .admin-table input[type="text"], 
 .admin-table input[type="email"] {
     width: 90%;
@@ -293,7 +286,6 @@
     gap: 5px;
 }
 
-/* Botones de accion especificos de la tabla */
 .btn-edit {
     background-color: #ffc107;
     color: #212529;
@@ -304,7 +296,6 @@
     font-size: 0.9em;
 }
 
-/* Boton guardar */
 .btn-save {
     background-color: #28a745;
     color: white;
@@ -315,7 +306,6 @@
     font-size: 0.9em;
 }
 
-/* Boton de cancelar */
 .btn-cancel {
     background-color: #6c757d;
     color: white;

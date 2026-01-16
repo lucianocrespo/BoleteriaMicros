@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase-config';
-// Importamos signOut de forma independiente
-import { signOut } from 'firebase/auth';
+// 💡 Importamos initializeApp para el truco de la app secundaria
+import { initializeApp } from 'firebase/app'; 
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 // Importamos herramientas avanzadas de Firestore:
 // - arrayUnion/arrayRemove: Para agregar/quitar elementos de arrays (como ciudades) sin leer todo el documento.
 // - collection: Para referencias a colecciones completas (necesario para listar usuarios).
-import { doc, getDoc, getDocs, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection } from 'firebase/firestore';
+import { doc, getDoc, getDocs, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection, setDoc } from 'firebase/firestore';
 import './PanelAdmin.css';
 
 const PanelAdmin = () => {
@@ -33,6 +34,13 @@ const PanelAdmin = () => {
     const [usuarios, setUsuarios] = useState([]);
     const [editingUserId, setEditingUserId] = useState(null); // ID del usuario en edicion
     const [editFormData, setEditFormData] = useState({}); // Datos del formulario de edicion
+
+    // 💡 NUEVOS ESTADOS: Formulario para crear usuario
+    const [nuevoUsNombre, setNuevoUsNombre] = useState('');
+    const [nuevoUsEmail, setNuevoUsEmail] = useState('');
+    const [nuevoUsPass, setNuevoUsPass] = useState('');
+    const [nuevoUsUser, setNuevoUsUser] = useState('');
+    const [nuevoUsEsAdmin, setNuevoUsEsAdmin] = useState(false);
 
     // Carga inicial de todos los datos necesarios al montar el componente
     useEffect(() => {
@@ -72,6 +80,53 @@ const PanelAdmin = () => {
         } catch (error) { console.error(error); }
     };
 
+    // =========================================================================
+    // 💡 LÓGICA DE CREACIÓN DE USUARIO (SIN CERRAR SESIÓN DEL ADMIN)
+    // =========================================================================
+    const crearUsuario = async () => {
+        if (!nuevoUsEmail || !nuevoUsPass || !nuevoUsNombre) {
+            alert("Completa al menos Email, Contraseña y Nombre.");
+            return;
+        }
+
+        try {
+            // 1. Obtenemos la configuración de la app actual
+            const firebaseConfig = auth.app.options;
+
+            // 2. Inicializamos una APP SECUNDARIA temporal
+            // Esto es necesario porque createUserWithEmailAndPassword loguea automáticamente al usuario.
+            // Al hacerlo en una app secundaria, la sesión del Admin en la app principal no se ve afectada.
+            const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+            const secondaryAuth = getAuth(secondaryApp);
+
+            // 3. Creamos el usuario en Auth (en la app secundaria)
+            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, nuevoUsEmail, nuevoUsPass);
+            const newUser = userCredential.user;
+
+            // 4. Creamos el documento en Firestore (Usamos la DB principal 'db')
+            await setDoc(doc(db, "Usuarios", newUser.uid), {
+                uid: newUser.uid,
+                nombre: nuevoUsNombre,
+                email: nuevoUsEmail,
+                usuario: nuevoUsUser,
+                esAdmin: nuevoUsEsAdmin,
+                fechaRegistro: new Date().toISOString()
+            });
+
+            // 5. Limpiamos: Cerramos sesión en la app secundaria y la eliminamos (opcional, JS la limpia eventualmente)
+            await signOut(secondaryAuth);
+            
+            // 6. Actualizamos la tabla y limpiamos formulario
+            alert("Usuario creado exitosamente.");
+            setNuevoUsNombre(''); setNuevoUsEmail(''); setNuevoUsPass(''); setNuevoUsUser(''); setNuevoUsEsAdmin(false);
+            cargarUsuarios();
+
+        } catch (error) {
+            console.error("Error al crear usuario:", error);
+            alert(`Error: ${error.message}`);
+        }
+    };
+
     // LOGICA DE HORARIOS (Edicion de estructuras anidadas)
 
     // Prepara el estado para editar un horario especifico dentro de una ruta
@@ -89,8 +144,8 @@ const PanelAdmin = () => {
 
     /**
      * Guarda los cambios de un horario.
-     * Firestore no permite actualizar un índice especifico de un array directamente.
-     * Entonces leemos el array, lo modificamos localmente y reescribimos el array completo para esa clave.
+       Firestore no permite actualizar un índice especifico de un array directamente.
+       Entonces leemos el array, lo modificamos localmente y reescribimos el array completo para esa clave.
      */
     const guardarEdicionHorario = async () => {
         if (!editingSchedule) return;
@@ -100,7 +155,7 @@ const PanelAdmin = () => {
             // Copia profunda del array de horarios de esa ruta
             const nuevosHorariosRuta = [...rutas[rutaKey]];
             
-            // Actualizamos el objeto en el índice especifico
+            // Actualizamos el objeto en el indice especifico
             nuevosHorariosRuta[index] = { 
                 ...nuevosHorariosRuta[index], // Mantenemos datos que no se editan (como asientosOcupados)
                 horario: data.horario,
@@ -245,7 +300,7 @@ const PanelAdmin = () => {
             <div className="admin-content">
                 {loading && <p>Cargando datos...</p>}
 
-                {/* --- PESTAÑA CIUDADES --- */}
+                {/* PESTAÑA CIUDADES */}
                 {!loading && activeTab === 'ciudades' && (
                     <div className="tab-section">
                         <h3>Gestionar Ciudades</h3>
@@ -261,7 +316,7 @@ const PanelAdmin = () => {
                     </div>
                 )}
 
-                {/* --- PESTAÑA HORARIOS --- */}
+                {/* PESTAÑA HORARIOS */}
                 {!loading && activeTab === 'horarios' && (
                     <div className="tab-section">
                         <h3>Gestionar Rutas</h3>
@@ -298,7 +353,6 @@ const PanelAdmin = () => {
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    /* Vista Normal */
                                                     <>
                                                         <span className="info-pill">⏰ {h.horario}</span>
                                                         <span className="info-pill price">💲 {h.precio || 'N/A'}</span>
@@ -321,22 +375,34 @@ const PanelAdmin = () => {
                 {!loading && activeTab === 'usuarios' && (
                     <div className="tab-section">
                         <h3>Gestión de Usuarios</h3>
+                        
+                        {/* FORMULARIO DE CREAR USUARIO NUEVO */}
+                        <div className="add-form-user">
+                            <h4>Crear Nuevo Usuario</h4>
+                            <div className="form-row">
+                                <input placeholder="Nombre" value={nuevoUsNombre} onChange={e => setNuevoUsNombre(e.target.value)} />
+                                <input placeholder="Usuario (Nick)" value={nuevoUsUser} onChange={e => setNuevoUsUser(e.target.value)} />
+                            </div>
+                            <div className="form-row">
+                                <input placeholder="Email" value={nuevoUsEmail} onChange={e => setNuevoUsEmail(e.target.value)} />
+                                <input placeholder="Contraseña" type="password" value={nuevoUsPass} onChange={e => setNuevoUsPass(e.target.value)} />
+                            </div>
+                            <div className="form-row-check">
+                                <label>
+                                    <input type="checkbox" checked={nuevoUsEsAdmin} onChange={e => setNuevoUsEsAdmin(e.target.checked)} />
+                                    ¿Es Admin?
+                                </label>
+                                <button onClick={crearUsuario} className="btn-add-user">Crear Usuario</button>
+                            </div>
+                        </div>
+
                         <div className="table-responsive">
                             <table className="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Email</th>
-                                        <th>Nombre</th>
-                                        <th>Usuario</th>
-                                        <th>Admin</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>Email</th><th>Nombre</th><th>Usuario</th><th>Admin</th><th>Acciones</th></tr></thead>
                                 <tbody>
                                     {usuarios.map(user => (
                                         <tr key={user.id}>
                                             <td>{user.email}</td>
-                                            {/* Edición de usuario en línea */}
                                             {editingUserId === user.id ? (
                                                 <>
                                                     <td><input value={editFormData.nombre || ''} onChange={(e) => setEditFormData({...editFormData, nombre: e.target.value})} /></td>
@@ -359,7 +425,7 @@ const PanelAdmin = () => {
                                                     <td>{user.usuario}</td>
                                                     <td style={{textAlign: 'center'}}>{user.esAdmin ? '✅' : '❌'}</td>
                                                     <td className="actions-cell">
-                                                        <button onClick={() => iniciarEdicionUsuario(user)} className="btn-edit">Editar</button>
+                                                        <button onClick={() => {setEditingUserId(user.id); setEditFormData({nombre: user.nombre, usuario: user.usuario, esAdmin: user.esAdmin})}} className="btn-edit">Editar</button>
                                                         <button onClick={() => handleEliminarUsuario(user.id)} className="btn-delete">Eliminar</button>
                                                     </td>
                                                 </>
