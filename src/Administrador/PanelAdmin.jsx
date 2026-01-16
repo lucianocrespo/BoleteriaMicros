@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase-config';
+// Importamos signOut de forma independiente
+import { signOut } from 'firebase/auth';
 // Importamos herramientas avanzadas de Firestore:
 // - arrayUnion/arrayRemove: Para agregar/quitar elementos de arrays (como ciudades) sin leer todo el documento.
 // - collection: Para referencias a colecciones completas (necesario para listar usuarios).
 import { doc, getDoc, getDocs, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection } from 'firebase/firestore';
-// Importamos estilos
 import './PanelAdmin.css';
 
 const PanelAdmin = () => {
     const navigate = useNavigate();
-
-    // Control de UI: Qué pestaña está activa y estado de carga global
+    
+    // Control de UI: Que pestaña esta activa y estado de carga global
     const [activeTab, setActiveTab] = useState('ciudades'); 
     const [loading, setLoading] = useState(false);
 
-    // Estados para gestion de ciudades
+    // ESTADOS PARA GESTION DE CIUDADES
     const [ciudades, setCiudades] = useState([]);
     const [nuevaCiudad, setNuevaCiudad] = useState('');
 
-    // Estados para gestion de rutas y horarios
+    // ESTADOS PARA GESTION DE RUTAS Y HORARIOS
+    // 'rutas' es un Objeto (Map) traído de Firebase: { "Origen-Destino": [Array de horarios] }
     const [rutas, setRutas] = useState({});
     const [nuevaRutaOrigen, setNuevaRutaOrigen] = useState('');
     const [nuevaRutaDestino, setNuevaRutaDestino] = useState('');
@@ -27,7 +29,7 @@ const PanelAdmin = () => {
     // Estado temporal para manejar la edicion de un horario especifico sin abrir otra pagina
     const [editingSchedule, setEditingSchedule] = useState(null);
 
-    // Estados para gestion de usuarios
+    // ESTADOS PARA GESTION DE USUARIOS
     const [usuarios, setUsuarios] = useState([]);
     const [editingUserId, setEditingUserId] = useState(null); // ID del usuario en edicion
     const [editFormData, setEditFormData] = useState({}); // Datos del formulario de edicion
@@ -38,9 +40,9 @@ const PanelAdmin = () => {
         cargarUsuarios();
     }, []);
 
-
-    /* Carga la configuracion global (Ciudades y Rutas) desde la coleccion 'config'.
-       Usamos 'getDoc' porque sabemos los IDs especificos de los documentos ('ciudades', 'horariosData').
+    /**
+     * Carga la configuracion global (Ciudades y Rutas) desde la coleccion 'config'.
+     * Usamos 'getDoc' porque sabemos los IDs específicos de los documentos ('ciudades', 'horariosData').
      */
     const cargarDatosGenerales = async () => {
         setLoading(true);
@@ -57,24 +59,26 @@ const PanelAdmin = () => {
         }
     };
 
-    /* Carga la lista de usuarios.
-       Usamos 'getDocs' + 'collection' para traer todos los documentos de la coleccion 'Usuarios'.
+    /**
+     * Carga la lista de usuarios.
+     * Usamos 'getDocs' + 'collection' para traer TODOS los documentos de la coleccion 'Usuarios'.
      */
     const cargarUsuarios = async () => {
         try {
             const querySnapshot = await getDocs(collection(db, "Usuarios"));
+            // Mapeamos los docs para incluir el ID de Firestore junto con los datos
             const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setUsuarios(usersList);
         } catch (error) { console.error(error); }
     };
 
-    // Logica de horarios
+    // LOGICA DE HORARIOS (Edicion de estructuras anidadas)
 
     // Prepara el estado para editar un horario especifico dentro de una ruta
     const iniciarEdicionHorario = (rutaKey, index, horarioData) => {
         setEditingSchedule({
             rutaKey, // La clave del mapa (ej: "Trenque Lauquen-Buenos Aires")
-            index, // La posición en el array de horarios
+            index,   // La posicion en el array de horarios
             data: { ...horarioData } // Copia de los datos para no mutar estado directamente
         });
     };
@@ -83,9 +87,10 @@ const PanelAdmin = () => {
         setEditingSchedule(null);
     };
 
-    /* Guarda los cambios de un horario.
-       Hay un pequeño problema: Firestore no permite actualizar un indice especifico de un array directamente.
-       Solucion: Leemos el array, lo modificamos localmente y reescribimos el array completo para esa clave.
+    /**
+     * Guarda los cambios de un horario.
+     * Firestore no permite actualizar un índice especifico de un array directamente.
+     * Entonces leemos el array, lo modificamos localmente y reescribimos el array completo para esa clave.
      */
     const guardarEdicionHorario = async () => {
         if (!editingSchedule) return;
@@ -94,14 +99,15 @@ const PanelAdmin = () => {
         try {
             // Copia profunda del array de horarios de esa ruta
             const nuevosHorariosRuta = [...rutas[rutaKey]];
-            // Actualizamos el objeto en el índice específico
+            
+            // Actualizamos el objeto en el índice especifico
             nuevosHorariosRuta[index] = { 
                 ...nuevosHorariosRuta[index], // Mantenemos datos que no se editan (como asientosOcupados)
                 horario: data.horario,
                 precio: data.precio
             };
 
-            // Actualizamos en Firestore usando notacion de punto para claves dinamicas
+            // Actualizamos en Firestore usando notación de punto para claves dinamicas
             const docRef = doc(db, "config", "horariosData");
             await updateDoc(docRef, {
                 [`horarios.${rutaKey}`]: nuevosHorariosRuta
@@ -139,12 +145,13 @@ const PanelAdmin = () => {
 
     const agregarRuta = async () => {
         if (!nuevaRutaOrigen || !nuevaRutaDestino) return;
-
+        
         // Creamos la clave compuesta que usa el sistema
         const nombreRuta = `${nuevaRutaOrigen}-${nuevaRutaDestino}`;
         try {
             const docRef = doc(db, "config", "horariosData");
             const horariosExistentes = rutas[nombreRuta] || [];
+            
             // Agregamos un horario base al array
             const nuevoArray = [...horariosExistentes, { horario: "08:00", precio: "5000", asientosOcupados: "null" }];
 
@@ -156,11 +163,11 @@ const PanelAdmin = () => {
         } catch (error) { console.error(error); }
     };
 
-    // Logica de usuarios
+    // LOGICA DE USUARIOS
     
     const handleEliminarUsuario = async (id) => {
         // Elimina permanentemente el documento de la coleccion 'Usuarios'
-        if (!window.confirm("¿Seguro que quieres eliminar este usuario?")) return;
+        if (!window.confirm("¿Seguro que quieres eliminar este usuario permanentemente?")) return;
         try {
             await deleteDoc(doc(db, "Usuarios", id));
             setUsuarios(usuarios.filter(u => u.id !== id)); // Actualiza UI
@@ -186,14 +193,16 @@ const PanelAdmin = () => {
                 usuario: editFormData.usuario,
                 esAdmin: editFormData.esAdmin
             });
+            
+            // Actualizacion optimista de la UI
             setUsuarios(usuarios.map(u => (u.id === id ? { ...u, ...editFormData } : u)));
             setEditingUserId(null);
             alert("Usuario actualizado.");
         } catch(e) { console.error(e); }
     };
 
-    // Logica de ciudades
-
+    // LOGICA DE CIUDADES
+    
     // Usamos arrayUnion para agregar sin duplicados y arrayRemove para borrar
     const agregarCiudad = async () => {
         if(!nuevaCiudad) return;
@@ -210,7 +219,14 @@ const PanelAdmin = () => {
         } catch(e) { console.error(e); }
     };
 
-    const cerrarSesion = () => { auth.signOut(); navigate('/'); };
+    const cerrarSesion = async () => { 
+        try {
+            await signOut(auth);
+            navigate('/'); 
+        } catch (error) {
+            console.error("Error al cerrar sesión", error);
+        }
+    };
 
     return (
         <div className="admin-container">
@@ -219,6 +235,7 @@ const PanelAdmin = () => {
                 <button onClick={cerrarSesion} className="btn-logout">Cerrar Sesión</button>
             </header>
 
+            {/* Navegacion por Pestañas */}
             <div className="admin-tabs">
                 <button className={activeTab === 'ciudades' ? 'active' : ''} onClick={() => setActiveTab('ciudades')}>Ciudades</button>
                 <button className={activeTab === 'horarios' ? 'active' : ''} onClick={() => setActiveTab('horarios')}>Horarios y Rutas</button>
@@ -260,6 +277,7 @@ const PanelAdmin = () => {
                                     <div className="ruta-detalles">
                                         {rutas[rutaKey].map((h, i) => (
                                             <div key={i} className="horario-mini-card">
+                                                {/* Renderizado condicional: Modo Edicion vs Modo Lectura */}
                                                 {editingSchedule && editingSchedule.rutaKey === rutaKey && editingSchedule.index === i ? (
                                                     <div className="edit-inline-form">
                                                         <label>Hora:</label>
@@ -280,6 +298,7 @@ const PanelAdmin = () => {
                                                         </div>
                                                     </div>
                                                 ) : (
+                                                    /* Vista Normal */
                                                     <>
                                                         <span className="info-pill">⏰ {h.horario}</span>
                                                         <span className="info-pill price">💲 {h.precio || 'N/A'}</span>
@@ -317,11 +336,18 @@ const PanelAdmin = () => {
                                     {usuarios.map(user => (
                                         <tr key={user.id}>
                                             <td>{user.email}</td>
+                                            {/* Edición de usuario en línea */}
                                             {editingUserId === user.id ? (
                                                 <>
                                                     <td><input value={editFormData.nombre || ''} onChange={(e) => setEditFormData({...editFormData, nombre: e.target.value})} /></td>
                                                     <td><input value={editFormData.usuario || ''} onChange={(e) => setEditFormData({...editFormData, usuario: e.target.value})} /></td>
-                                                    <td><input type="checkbox" checked={editFormData.esAdmin || false} onChange={(e) => setEditFormData({...editFormData, esAdmin: e.target.checked})} /></td>
+                                                    <td style={{textAlign: 'center'}}>
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={editFormData.esAdmin || false} 
+                                                            onChange={(e) => setEditFormData({...editFormData, esAdmin: e.target.checked})} 
+                                                        />
+                                                    </td>
                                                     <td className="actions-cell">
                                                         <button onClick={() => guardarUsuarioEdit(user.id)} className="btn-save">Guardar</button>
                                                         <button onClick={() => {setEditingUserId(null); setEditFormData({});}} className="btn-cancel">Cancelar</button>
@@ -331,7 +357,7 @@ const PanelAdmin = () => {
                                                 <>
                                                     <td>{user.nombre}</td>
                                                     <td>{user.usuario}</td>
-                                                    <td>{user.esAdmin ? '✅' : '❌'}</td>
+                                                    <td style={{textAlign: 'center'}}>{user.esAdmin ? '✅' : '❌'}</td>
                                                     <td className="actions-cell">
                                                         <button onClick={() => iniciarEdicionUsuario(user)} className="btn-edit">Editar</button>
                                                         <button onClick={() => handleEliminarUsuario(user.id)} className="btn-delete">Eliminar</button>
