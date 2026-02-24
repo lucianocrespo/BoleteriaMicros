@@ -10,10 +10,10 @@ import App from './App.jsx';
 // Importamos el componente que habilita el enrutamiento (navegacion)
 import { BrowserRouter } from 'react-router-dom';
 
-// CREACION DE LA RAIZ (ROOT)
+// Creacion de la raiz (ROOT)
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-// RENDERIZADO DE LA APP
+// Renderizado de la app
 root.render(
   // StrictMode: En desarrollo, ejecuta efectos dos veces para asegurar calidad
   <React.StrictMode>

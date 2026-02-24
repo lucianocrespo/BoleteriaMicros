@@ -1,4 +1,4 @@
-/* CONFIGURACIÓN GLOBAL (:root) */
+/* Configuracion global (:root) */
 
 :root {
   /* Definicion de la fuente principal del sistema */
@@ -18,7 +18,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ELEMENTOS BÁSICOS */
+/* Elementos basicos */
 
 /* Estilos para enlaces */
 a {
@@ -64,7 +64,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-/*ADAPTACIÓN A MODO CLARO */
+/*Adaptacion a modo claro */
 
 @media (prefers-color-scheme: light) {
   :root {

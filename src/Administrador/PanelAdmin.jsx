@@ -1,57 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase-config';
-// Importamos initializeApp para crear una app secundaria temporal (esto es necesario para crear usuarios sin cerrar la sesion del admin)
-import { initializeApp } from 'firebase/app'; 
-import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 // Importamos herramientas avanzadas de Firestore:
 // - arrayUnion/arrayRemove: Para agregar/quitar elementos de arrays (como ciudades) sin leer todo el documento.
 // - collection: Para referencias a colecciones completas (necesario para listar usuarios).
-import { doc, getDoc, getDocs, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection, setDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection, deleteField } from 'firebase/firestore';
+import { updatePassword, onAuthStateChanged } from 'firebase/auth';
+// Importamos estilos
 import './PanelAdmin.css';
 
 const PanelAdmin = () => {
     const navigate = useNavigate();
-    
-    // Control de UI: Que pestaña esta activa y estado de carga global
+
+    // Control de UI: Pestaña activa y estado de carga global
     const [activeTab, setActiveTab] = useState('ciudades'); 
     const [loading, setLoading] = useState(false);
 
-    // GESTION DE CIUDADES
+    // Estado para el ID del administrador logueado
+    const [adminUid, setAdminUid] = useState(null); 
+
+    // Estado para mostrar/ocultar contraseña
+    const [showPassword, setShowPassword] = useState(false);
+
+    // Estados para gestion de ciudades
     const [ciudades, setCiudades] = useState([]);
     const [nuevaCiudad, setNuevaCiudad] = useState('');
 
-    // GESTION DE RUTAS Y HORARIOS
-    // 'rutas' es un Objeto (Map) traído de Firebase: { "Origen-Destino": [Array de horarios] }
+    // Estados para rutas y horarios
     const [rutas, setRutas] = useState({});
     const [nuevaRutaOrigen, setNuevaRutaOrigen] = useState('');
     const [nuevaRutaDestino, setNuevaRutaDestino] = useState('');
     
-    // Estado temporal para manejar la edicion de un horario especifico sin abrir otra pagina
+    // Estado para edición de horarios
     const [editingSchedule, setEditingSchedule] = useState(null);
 
-    // GESTION DE USUARIOS
+    // Estados para gestión de usuarios
     const [usuarios, setUsuarios] = useState([]);
-    const [editingUserId, setEditingUserId] = useState(null); // ID del usuario en edicion
-    const [editFormData, setEditFormData] = useState({}); // Datos del formulario de edicion
+    const [editingUserId, setEditingUserId] = useState(null);
+    const [editFormData, setEditFormData] = useState({});
 
-    // Formulario para crear usuario
-    const [nuevoUsNombre, setNuevoUsNombre] = useState('');
-    const [nuevoUsEmail, setNuevoUsEmail] = useState('');
-    const [nuevoUsPass, setNuevoUsPass] = useState('');
-    const [nuevoUsUser, setNuevoUsUser] = useState('');
-    const [nuevoUsEsAdmin, setNuevoUsEsAdmin] = useState(false);
-
-    // Carga inicial de todos los datos necesarios al montar el componente
+    // Carga inicial de datos y escucha de autenticación
     useEffect(() => {
         cargarDatosGenerales();
         cargarUsuarios();
+
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setAdminUid(user.uid);
+            }
+        });
+        
+        return () => unsubscribe();
     }, []);
 
-    /*
-       Carga la configuracion global (Ciudades y Rutas) desde la coleccion 'config'.
+    /* Carga la configuracion global (Ciudades y Rutas) desde la coleccion 'config'.
        Usamos 'getDoc' porque sabemos los IDs especificos de los documentos ('ciudades', 'horariosData').
-     */
+    */
     const cargarDatosGenerales = async () => {
         setLoading(true);
         try {
@@ -61,77 +65,30 @@ const PanelAdmin = () => {
             const docHorarios = await getDoc(doc(db, "config", "horariosData"));
             if (docHorarios.exists()) setRutas(docHorarios.data().horarios || {});
         } catch (error) {
-            console.error("Error cargando configuración:", error);
+            console.error("Error al cargar datos:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    /*
-       Carga la lista de usuarios.
-       Usamos 'getDocs' + 'collection' para traer TODOS los documentos de la coleccion 'Usuarios'.
-     */
+    /* Carga la lista de usuarios.
+       Usamos 'getDocs' + 'collection' para traer todos los documentos de la coleccion 'Usuarios'.
+    */
     const cargarUsuarios = async () => {
         try {
             const querySnapshot = await getDocs(collection(db, "Usuarios"));
-            // Mapeamos los docs para incluir el ID de Firestore junto con los datos
             const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setUsuarios(usersList);
         } catch (error) { console.error(error); }
     };
 
-    // LOGICA DE CREACION DE USUARIO (SIN CERRAR SESION DEL ADMIN)
-    const crearUsuario = async () => {
-        if (!nuevoUsEmail || !nuevoUsPass || !nuevoUsNombre) {
-            alert("Completa al menos Email, Contraseña y Nombre.");
-            return;
-        }
-
-        try {
-            // Obtenemos la configuracion de la app actual
-            const firebaseConfig = auth.app.options;
-
-            // Inicializamos una app secundaria temporal
-            // Esto es necesario porque createUserWithEmailAndPassword loguea automaticamente al usuario.
-            // Al hacerlo en una app secundaria, la sesion del Admin en la app principal no se ve afectada.
-            const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
-            const secondaryAuth = getAuth(secondaryApp);
-
-            // Creamos el usuario en Auth (en la app secundaria)
-            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, nuevoUsEmail, nuevoUsPass);
-            const newUser = userCredential.user;
-
-            // Creamos el documento en Firestore (Usamos la DB principal 'db')
-            await setDoc(doc(db, "Usuarios", newUser.uid), {
-                uid: newUser.uid,
-                nombre: nuevoUsNombre,
-                email: nuevoUsEmail,
-                usuario: nuevoUsUser,
-                esAdmin: nuevoUsEsAdmin,
-                fechaRegistro: new Date().toISOString()
-            });
-
-            // Limpiamos: Cerramos sesion en la app secundaria y la eliminamos
-            await signOut(secondaryAuth);
-            
-            // Actualizamos la tabla y limpiamos formulario
-            alert("Usuario creado exitosamente.");
-            setNuevoUsNombre(''); setNuevoUsEmail(''); setNuevoUsPass(''); setNuevoUsUser(''); setNuevoUsEsAdmin(false);
-            cargarUsuarios();
-
-        } catch (error) {
-            console.error("Error al crear usuario:", error);
-            alert(`Error: ${error.message}`);
-        }
-    };
-
-    // LOGICA DE HORARIOS (Edicion de estructuras anidadas)
+    // Logica de horarios
 
     // Prepara el estado para editar un horario especifico dentro de una ruta
     const iniciarEdicionHorario = (rutaKey, index, horarioData) => {
         setEditingSchedule({
             rutaKey, // La clave del mapa (ej: "Trenque Lauquen-Buenos Aires")
-            index,   // La posicion en el array de horarios
+            index, // La posición en el array de horarios
             data: { ...horarioData } // Copia de los datos para no mutar estado directamente
         });
     };
@@ -140,27 +97,38 @@ const PanelAdmin = () => {
         setEditingSchedule(null);
     };
 
-    /*
-       Guarda los cambios de un horario.
-       Firestore no permite actualizar un índice especifico de un array directamente.
-       Entonces leemos el array, lo modificamos localmente y reescribimos el array completo para esa clave.
-     */
+    /* Guarda los cambios de un horario.
+       Hay un pequeño problema: Firestore no permite actualizar un indice especifico de un array directamente.
+       Solucion: Leemos el array, lo modificamos localmente y reescribimos el array completo para esa clave.
+    */
     const guardarEdicionHorario = async () => {
         if (!editingSchedule) return;
         const { rutaKey, index, data } = editingSchedule;
 
+        // Validar formato HH:MM
+        const regexHorario = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        if (!regexHorario.test(data.horario)) {
+            alert("El formato debe ser HH:MM (ejemplo: 08:30).");
+            return;
+        }
+
+        const precioNum = parseFloat(data.precio);
+        if (isNaN(precioNum) || precioNum < 0) {
+            alert("El precio debe ser un número positivo.");
+            return;
+        }
+
         try {
             // Copia profunda del array de horarios de esa ruta
             const nuevosHorariosRuta = [...rutas[rutaKey]];
-            
-            // Actualizamos el objeto en el indice especifico
+            // Actualizamos el objeto en el índice especifico
             nuevosHorariosRuta[index] = { 
                 ...nuevosHorariosRuta[index], // Mantenemos datos que no se editan (como asientosOcupados)
                 horario: data.horario,
-                precio: data.precio
+                precio: precioNum.toString()
             };
 
-            // Actualizamos en Firestore usando notación de punto para claves dinamicas
+            // Actualizamos en Firestore usando notacion de punto para claves dinamicas
             const docRef = doc(db, "config", "horariosData");
             await updateDoc(docRef, {
                 [`horarios.${rutaKey}`]: nuevosHorariosRuta
@@ -169,62 +137,52 @@ const PanelAdmin = () => {
             // Actualizamos el estado local para reflejar cambios sin recargar
             setRutas({ ...rutas, [rutaKey]: nuevosHorariosRuta });
             setEditingSchedule(null);
-            alert("Horario actualizado correctamente.");
-
+            alert("Horario actualizado con éxito.");
         } catch (error) {
-            console.error("Error actualizando horario:", error);
-            alert("Error al guardar cambios.");
+            console.error(error);
+            alert("Ocurrió un error al guardar.");
         }
     };
 
     const eliminarHorario = async (rutaKey, index) => {
-        if (!window.confirm("¿Seguro que quieres eliminar este horario?")) return;
-
+        if (!window.confirm("¿Seguro que desea eliminar este horario?")) return;
         try {
             const nuevosHorariosRuta = [...rutas[rutaKey]];
             nuevosHorariosRuta.splice(index, 1); // Eliminamos del array local
-
             const docRef = doc(db, "config", "horariosData");
-            await updateDoc(docRef, {
-                [`horarios.${rutaKey}`]: nuevosHorariosRuta
-            });
-
+            await updateDoc(docRef, { [`horarios.${rutaKey}`]: nuevosHorariosRuta });
             setRutas({ ...rutas, [rutaKey]: nuevosHorariosRuta });
-
-        } catch (error) {
-            console.error("Error eliminando horario:", error);
-        }
+        } catch (error) { console.error(error); }
     };
 
     const agregarRuta = async () => {
-        if (!nuevaRutaOrigen || !nuevaRutaDestino) return;
-        
+        if (!nuevaRutaOrigen || !nuevaRutaDestino) {
+            alert("Seleccione origen y destino.");
+            return;
+        }
+        if (nuevaRutaOrigen === nuevaRutaDestino) {
+            alert("Origen y destino no pueden ser iguales.");
+            return;
+        }
         // Creamos la clave compuesta que usa el sistema
         const nombreRuta = `${nuevaRutaOrigen}-${nuevaRutaDestino}`;
         try {
             const docRef = doc(db, "config", "horariosData");
             const horariosExistentes = rutas[nombreRuta] || [];
-            
             // Agregamos un horario base al array
-            const nuevoArray = [...horariosExistentes, { horario: "08:00", precio: "5000", asientosOcupados: "null" }];
-
-            await updateDoc(docRef, {
-                [`horarios.${nombreRuta}`]: nuevoArray
-            });
-            alert(`Ruta/Horario agregado en ${nombreRuta}.`);
+            const nuevoArray = [...horariosExistentes, { horario: "08:00", precio: "5000", asientosOcupados: {} }];
+            await updateDoc(docRef, { [`horarios.${nombreRuta}`]: nuevoArray });
             cargarDatosGenerales();
         } catch (error) { console.error(error); }
     };
 
-    // LOGICA DE USUARIOS
-    
+    // Logica de usuarios
     const handleEliminarUsuario = async (id) => {
         // Elimina permanentemente el documento de la coleccion 'Usuarios'
-        if (!window.confirm("¿Seguro que quieres eliminar este usuario permanentemente?")) return;
+        if (!window.confirm("¿Seguro que desea eliminar este usuario?")) return;
         try {
             await deleteDoc(doc(db, "Usuarios", id));
             setUsuarios(usuarios.filter(u => u.id !== id)); // Actualiza UI
-            alert("Usuario eliminado correctamente.");
         } catch (error) { console.error(error); }
     };
 
@@ -232,54 +190,80 @@ const PanelAdmin = () => {
         setEditingUserId(usuario.id);
         setEditFormData({
             nombre: usuario.nombre || '',
-            usuario: usuario.usuario || '',
-            esAdmin: usuario.esAdmin || false
+            esAdmin: usuario.esAdmin || false,
+            nuevaContrasena: '' 
         });
+        setShowPassword(false);
     };
 
     const guardarUsuarioEdit = async (id) => {
         try {
+            // Cambio de contraseña propia
+            if (id === auth.currentUser?.uid && editFormData.nuevaContrasena) {
+                if (editFormData.nuevaContrasena.length < 6) {
+                    alert("La contraseña debe tener al menos 6 caracteres.");
+                    return;
+                }
+                try {
+                    await updatePassword(auth.currentUser, editFormData.nuevaContrasena);
+                } catch (error) {
+                    alert("Error de seguridad: " + error.message);
+                    return;
+                }
+            }
+
             const userRef = doc(db, "Usuarios", id);
             // updateDoc solo modifica los campos enviados, no sobrescribe todo el documento
             await updateDoc(userRef, {
                 nombre: editFormData.nombre,
-                usuario: editFormData.usuario,
                 esAdmin: editFormData.esAdmin
             });
-            
-            // Actualizacion optimista de la UI
             setUsuarios(usuarios.map(u => (u.id === id ? { ...u, ...editFormData } : u)));
             setEditingUserId(null);
             alert("Usuario actualizado.");
         } catch(e) { console.error(e); }
     };
 
-    // LOGICA DE CIUDADES
-    
+    // Logica de ciudades
+
     // Usamos arrayUnion para agregar sin duplicados y arrayRemove para borrar
     const agregarCiudad = async () => {
-        if(!nuevaCiudad) return;
+        if(!nuevaCiudad.trim()) return;
+        const ciudadNormalizada = nuevaCiudad.trim().toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+        if (ciudades.some(c => c.toLowerCase() === ciudadNormalizada.toLowerCase())) {
+            alert("La ciudad ya existe.");
+            return;
+        }
         try {
-            await updateDoc(doc(db, "config", "ciudades"), { lista: arrayUnion(nuevaCiudad) });
+            await updateDoc(doc(db, "config", "ciudades"), { lista: arrayUnion(ciudadNormalizada) });
             setNuevaCiudad(''); cargarDatosGenerales();
         } catch(e) { console.error(e); }
     };
+
     const eliminarCiudad = async (c) => {
-        if(!window.confirm("¿Eliminar?")) return;
+        if(!window.confirm(`¿Seguro que desea eliminar la ciudad ${c} y TODAS sus rutas asociadas?`)) return;
         try {
             await updateDoc(doc(db, "config", "ciudades"), { lista: arrayRemove(c) });
+            
+            // Borrado en cascada de rutas
+            const rutasAEliminar = Object.keys(rutas).filter(rutaKey => {
+                const [origen, destino] = rutaKey.split('-');
+                return origen === c || destino === c;
+            });
+
+            if (rutasAEliminar.length > 0) {
+                const docRef = doc(db, "config", "horariosData");
+                const updates = {};
+                rutasAEliminar.forEach(rutaKey => {
+                    updates[`horarios.${rutaKey}`] = deleteField();
+                });
+                await updateDoc(docRef, updates);
+            }
             cargarDatosGenerales();
         } catch(e) { console.error(e); }
     };
 
-    const cerrarSesion = async () => { 
-        try {
-            await signOut(auth);
-            navigate('/'); 
-        } catch (error) {
-            console.error("Error al cerrar sesión", error);
-        }
-    };
+    const cerrarSesion = () => { auth.signOut(); navigate('/'); };
 
     return (
         <div className="admin-container">
@@ -288,7 +272,6 @@ const PanelAdmin = () => {
                 <button onClick={cerrarSesion} className="btn-logout">Cerrar Sesión</button>
             </header>
 
-            {/* Navegacion por Pestañas */}
             <div className="admin-tabs">
                 <button className={activeTab === 'ciudades' ? 'active' : ''} onClick={() => setActiveTab('ciudades')}>Ciudades</button>
                 <button className={activeTab === 'horarios' ? 'active' : ''} onClick={() => setActiveTab('horarios')}>Horarios y Rutas</button>
@@ -298,10 +281,10 @@ const PanelAdmin = () => {
             <div className="admin-content">
                 {loading && <p>Cargando datos...</p>}
 
-                {/* PESTAÑA CIUDADES */}
+                {/* Pestaña Ciudades */}
                 {!loading && activeTab === 'ciudades' && (
                     <div className="tab-section">
-                        <h3>Gestionar Ciudades</h3>
+                        <h3>Gestión de Ciudades</h3>
                         <div className="add-form">
                             <input type="text" value={nuevaCiudad} onChange={(e) => setNuevaCiudad(e.target.value)} placeholder="Nueva ciudad..." />
                             <button onClick={agregarCiudad} className="btn-add">Agregar</button>
@@ -314,37 +297,32 @@ const PanelAdmin = () => {
                     </div>
                 )}
 
-                {/* PESTAÑA HORARIOS */}
+                {/* Pestaña Horarios */}
                 {!loading && activeTab === 'horarios' && (
                     <div className="tab-section">
-                        <h3>Gestionar Rutas</h3>
+                        <h3>Gestión de Rutas</h3>
                         <div className="add-form">
-                            <input type="text" value={nuevaRutaOrigen} onChange={(e) => setNuevaRutaOrigen(e.target.value)} placeholder="Origen" />
-                            <input type="text" value={nuevaRutaDestino} onChange={(e) => setNuevaRutaDestino(e.target.value)} placeholder="Destino" />
-                            <button onClick={agregarRuta} className="btn-add">Crear Ruta / Agregar Horario</button>
+                            <select value={nuevaRutaOrigen} onChange={(e) => setNuevaRutaOrigen(e.target.value)}>
+                                <option value="">Origen...</option>
+                                {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <select value={nuevaRutaDestino} onChange={(e) => setNuevaRutaDestino(e.target.value)}>
+                                <option value="">Destino...</option>
+                                {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <button onClick={agregarRuta} className="btn-add">Crear Ruta</button>
                         </div>
                         <div className="rutas-list">
                             {Object.keys(rutas).map(rutaKey => (
                                 <details key={rutaKey} className="ruta-item" open>
-                                    <summary><strong>{rutaKey}</strong> ({rutas[rutaKey].length} viajes)</summary>
+                                    <summary>{rutaKey} ({rutas[rutaKey].length} viajes)</summary>
                                     <div className="ruta-detalles">
                                         {rutas[rutaKey].map((h, i) => (
                                             <div key={i} className="horario-mini-card">
-                                                {/* Renderizado condicional: Modo Edicion vs Modo Lectura */}
                                                 {editingSchedule && editingSchedule.rutaKey === rutaKey && editingSchedule.index === i ? (
                                                     <div className="edit-inline-form">
-                                                        <label>Hora:</label>
-                                                        <input 
-                                                            type="text" 
-                                                            value={editingSchedule.data.horario} 
-                                                            onChange={(e) => setEditingSchedule({...editingSchedule, data: {...editingSchedule.data, horario: e.target.value}})}
-                                                        />
-                                                        <label>Precio:</label>
-                                                        <input 
-                                                            type="text" 
-                                                            value={editingSchedule.data.precio} 
-                                                            onChange={(e) => setEditingSchedule({...editingSchedule, data: {...editingSchedule.data, precio: e.target.value}})}
-                                                        />
+                                                        <input type="text" value={editingSchedule.data.horario} onChange={(e) => setEditingSchedule({...editingSchedule, data: {...editingSchedule.data, horario: e.target.value}})} />
+                                                        <input type="text" value={editingSchedule.data.precio} onChange={(e) => setEditingSchedule({...editingSchedule, data: {...editingSchedule.data, precio: e.target.value}})} />
                                                         <div className="edit-buttons">
                                                             <button onClick={guardarEdicionHorario} className="btn-save-mini">💾</button>
                                                             <button onClick={cancelarEdicionHorario} className="btn-cancel-mini">✖</button>
@@ -352,8 +330,7 @@ const PanelAdmin = () => {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <span className="info-pill">⏰ {h.horario}</span>
-                                                        <span className="info-pill price">💲 {h.precio || 'N/A'}</span>
+                                                        <div><span className="info-pill">⏰ {h.horario}</span><span className="info-pill price">💲 {h.precio}</span></div>
                                                         <div className="card-actions">
                                                             <button onClick={() => iniciarEdicionHorario(rutaKey, i, h)} className="btn-edit-mini">✏️</button>
                                                             <button onClick={() => eliminarHorario(rutaKey, i)} className="btn-delete-mini">🗑️</button>
@@ -369,67 +346,81 @@ const PanelAdmin = () => {
                     </div>
                 )}
 
-                {/* PESTAÑA USUARIOS */}
+                {/* Pestaña Usuarios */}
                 {!loading && activeTab === 'usuarios' && (
                     <div className="tab-section">
                         <h3>Gestión de Usuarios</h3>
-                        
-                        {/* FORMULARIO DE CREAR USUARIO NUEVO */}
-                        <div className="add-form-user">
-                            <h4>Crear Nuevo Usuario</h4>
-                            <div className="form-row">
-                                <input placeholder="Nombre" value={nuevoUsNombre} onChange={e => setNuevoUsNombre(e.target.value)} />
-                                <input placeholder="Usuario (Nick)" value={nuevoUsUser} onChange={e => setNuevoUsUser(e.target.value)} />
-                            </div>
-                            <div className="form-row">
-                                <input placeholder="Email" value={nuevoUsEmail} onChange={e => setNuevoUsEmail(e.target.value)} />
-                                <input placeholder="Contraseña" type="password" value={nuevoUsPass} onChange={e => setNuevoUsPass(e.target.value)} />
-                            </div>
-                            <div className="form-row-check">
-                                <label>
-                                    <input type="checkbox" checked={nuevoUsEsAdmin} onChange={e => setNuevoUsEsAdmin(e.target.checked)} />
-                                    ¿Es Admin?
-                                </label>
-                                <button onClick={crearUsuario} className="btn-add-user">Crear Usuario</button>
-                            </div>
-                        </div>
-
                         <div className="table-responsive">
                             <table className="admin-table">
-                                <thead><tr><th>Email</th><th>Nombre</th><th>Usuario</th><th>Admin</th><th>Acciones</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                        <th>Nombre</th>
+                                        <th style={{ textAlign: 'center' }}>Admin</th>
+                                        <th style={{ textAlign: 'center' }}>Acciones</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
-                                    {usuarios.map(user => (
-                                        <tr key={user.id}>
-                                            <td>{user.email}</td>
-                                            {editingUserId === user.id ? (
-                                                <>
-                                                    <td><input value={editFormData.nombre || ''} onChange={(e) => setEditFormData({...editFormData, nombre: e.target.value})} /></td>
-                                                    <td><input value={editFormData.usuario || ''} onChange={(e) => setEditFormData({...editFormData, usuario: e.target.value})} /></td>
-                                                    <td style={{textAlign: 'center'}}>
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={editFormData.esAdmin || false} 
-                                                            onChange={(e) => setEditFormData({...editFormData, esAdmin: e.target.checked})} 
-                                                        />
-                                                    </td>
-                                                    <td className="actions-cell">
-                                                        <button onClick={() => guardarUsuarioEdit(user.id)} className="btn-save">Guardar</button>
-                                                        <button onClick={() => {setEditingUserId(null); setEditFormData({});}} className="btn-cancel">Cancelar</button>
-                                                    </td>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <td>{user.nombre}</td>
-                                                    <td>{user.usuario}</td>
-                                                    <td style={{textAlign: 'center'}}>{user.esAdmin ? '✅' : '❌'}</td>
-                                                    <td className="actions-cell">
-                                                        <button onClick={() => {setEditingUserId(user.id); setEditFormData({nombre: user.nombre, usuario: user.usuario, esAdmin: user.esAdmin})}} className="btn-edit">Editar</button>
-                                                        <button onClick={() => handleEliminarUsuario(user.id)} className="btn-delete">Eliminar</button>
-                                                    </td>
-                                                </>
-                                            )}
-                                        </tr>
-                                    ))}
+                                    {usuarios.map(user => {
+                                        const esMiUsuario = adminUid && (adminUid === user.id || adminUid === user.uid);
+                                        return (
+                                            <tr key={user.id}>
+                                                <td>{user.email}</td>
+                                                {editingUserId === user.id ? (
+                                                    <>
+                                                        <td>
+                                                            <label style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', fontWeight: 'bold', fontSize: '0.8em' }}>
+                                                                <span>Nombre:</span>
+                                                                <input type="text" value={editFormData.nombre || ''} onChange={(e) => setEditFormData({...editFormData, nombre: e.target.value})} />
+                                                            </label>
+                                                        </td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontWeight: 'bold', fontSize: '0.8em' }}>
+                                                                <span>¿Es Admin?</span>
+                                                                <input type="checkbox" checked={editFormData.esAdmin || false} onChange={(e) => setEditFormData({...editFormData, esAdmin: e.target.checked})} />
+                                                            </label>
+                                                        </td>
+                                                        <td className="actions-cell" style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                            {esMiUsuario && (
+                                                                <label style={{ width: '100%', display: 'flex', flexDirection: 'column', textAlign: 'left', fontWeight: 'bold', fontSize: '0.8em', marginBottom: '10px' }}>
+                                                                    <span>Contraseña:</span>
+                                                                    <div className="password-wrapper">
+                                                                        <input 
+                                                                            type={showPassword ? "text" : "password"} 
+                                                                            placeholder="Nueva contraseña..." 
+                                                                            value={editFormData.nuevaContrasena || ''} 
+                                                                            onChange={(e) => setEditFormData({...editFormData, nuevaContrasena: e.target.value})}
+                                                                            className="edit-password-input"
+                                                                        />
+                                                                        <button type="button" className="btn-eye" onClick={() => setShowPassword(!showPassword)} title="Mostrar/Ocultar">
+                                                                            {showPassword ? (
+                                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                                                                            ) : (
+                                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                                                            )}
+                                                                        </button>
+                                                                    </div>
+                                                                </label>
+                                                            )}
+                                                            <div style={{ display: 'flex', gap: '5px', width: '100%', justifyContent: 'center' }}>
+                                                                <button onClick={() => guardarUsuarioEdit(user.id)} className="btn-save">Guardar</button>
+                                                                <button onClick={() => {setEditingUserId(null); setEditFormData({}); setShowPassword(false);}} className="btn-cancel">Cancelar</button>
+                                                            </div>
+                                                        </td>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <td>{user.nombre}</td>
+                                                        <td style={{ textAlign: 'center' }}>{user.esAdmin ? '✅' : '❌'}</td>
+                                                        <td className="actions-cell" style={{ justifyContent: 'center' }}>
+                                                            <button onClick={() => iniciarEdicionUsuario(user)} className="btn-edit">Editar</button>
+                                                            <button onClick={() => handleEliminarUsuario(user.id)} className="btn-delete">Eliminar</button>
+                                                        </td>
+                                                    </>
+                                                )}
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>

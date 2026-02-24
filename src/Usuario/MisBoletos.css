@@ -1,4 +1,4 @@
-/* LAYOUT PRINCIPAL */
+/* Layout principal */
 
 /* Contenedor principal de la página: Centra el contenido vertical y horizontalmente */
 .mis-boletos-container {
@@ -9,7 +9,7 @@
     align-items: center; /* Centra horizontalmente */
     padding: 40px 20px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    color: #262626;
+    color: #fff3f3;
 }
 
 /* Limita el ancho del contenido para que no se estire demasiado en pantallas grandes */
@@ -26,7 +26,7 @@
     text-align: center;
 }
 
-/* TARJETA DEL BOLETO */
+/* Tarjeta del boleto */
 
 /* Estilo de la Tarjeta de Boleto */
 .boleto-card {
@@ -40,7 +40,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    color: #333333;
+    color: #343333;
 }
 
 /* Efecto de elevacion al pasar el mouse */
@@ -89,9 +89,9 @@
     font-family: monospace;
 }
 
-/* BOTONES DE ACCION */
+/* Botones de accion */
 
-/* ESTILO DEL BOTON CANCELAR */
+/* Estilo del boton cancelar */
 .btn-cancelar {
     background-color: #fff;
     color: #dc3545; /* Rojo de alerta */
@@ -151,4 +151,50 @@
     margin-top: 10px;
     font-size: 0.9em;
     color: #999;
+}
+
+/* Estilo visual para boletos pasados (opacidad reducida) */
+.boleto-card.pasado {
+    border-left: 6px solid #b0bec5; /* Borde gris en lugar de azul */
+    opacity: 0.8;
+    background-color: #f9f9f9;
+}
+
+.boleto-card.pasado .boleto-ruta {
+    color: #607d8b;
+}
+
+/* Etiqueta informativa para viajes finalizados */
+.etiqueta-finalizado {
+    background-color: #e0e0e0;
+    color: #555;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    margin-top: 10px;
+    align-self: flex-end;
+    border: 1px solid #ccc;
+    cursor: default;
+}
+
+/* Imagen de fondo fija */
+.imagen {
+    display: flex;
+    position: fixed;            
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    overflow: hidden;
+    z-index: -1;                
+}
+
+.imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
 }

@@ -1,6 +1,6 @@
-/* VARIABLES Y TEMA (Modo Claro/Oscuro) */
+/* Variables y tema (modo claro/oscuro) */
 :root {
-    /* Definimos las variables de color por defecto (Modo Claro) */
+    /* Definimos las variables de color por defecto (modo Claro) */
     --color-fondo-page: #f0f2f500; 
     --color-tarjeta: #ffffff; 
     --color-borde: #dbdbdb; 
@@ -14,7 +14,7 @@
     color-scheme: light dark;
 }
 
-/* Variables modo oscuro (Automatico) */
+/* Variables modo oscuro (automatico) */
 @media (prefers-color-scheme: dark) {
     :root {
         --color-fondo-page: #12121200;
@@ -26,7 +26,7 @@
     }
 }
 
-/* LAYOUT PRINCIPAL */
+/* Layout principal */
 
 .viajar-container {
     background-color: var(--color-fondo-page);
@@ -40,7 +40,7 @@
     transition: background-color 0.3s ease, color 0.3s ease; /* Transicion suave de colores al cambiar de tema */
 }
 
-/* TARJETA DEL FORMULARIO */
+/* Tarjeta del formulario */
 
 .viajar-form-card {
     background-color: var(--color-tarjeta);
@@ -82,7 +82,7 @@
     }
 }
 
-/* CAMPOS DEL FORMULARIO */
+/* Campos del formulario */
 
 .viajar-form {
     display: flex;
@@ -130,7 +130,7 @@
     }
 }
 
-/* BOTONES */
+/* Botones */
 
 .viajar-form button {
     padding: 12px;
@@ -168,7 +168,7 @@
     background-color: rgba(0, 149, 246, 0.1); 
 }
 
-/* IMAGEN DE FONDO */
+/* Imagen de fondo */
 
 .imagen {
     display: flex;

@@ -1,4 +1,4 @@
-/* LAYOUT GENERAL */
+/* Layout general */
 
 /* Contenedor principal que abarca toda la pantalla */
 .admin-container {
@@ -29,7 +29,7 @@
     font-weight: 600;
 }
 
-/* NAVEGACION POR PESTAÑAS */
+/* Navegacion por pestañas */
 
 .admin-tabs {
     display: flex;
@@ -83,7 +83,7 @@
     color: #007bff;
 }
 
-/* FORMULARIOS Y CONTROLES */
+/* Formularios y controles */
 
 /* Formularios de agregar */
 .add-form {
@@ -95,11 +95,18 @@
     border-radius: 6px;
 }
 
-.add-form input {
+.add-form input, .add-form select {
     flex: 1; /* El input ocupa todo el espacio disponible */
     padding: 10px;
     border: 1px solid #ced4da;
     border-radius: 4px;
+    color: #333; 
+    background-color: #ffffff;
+}
+
+.add-form input:focus, .add-form select:focus {
+    border-color: #007bff;
+    outline: none;
 }
 
 .btn-add {
@@ -112,27 +119,7 @@
     font-weight: 600;
 }
 
-.btn-add:hover {
-    background: #218838;
-}
-
-/* FORMULARIO DE USUARIO */
-
-.add-form-user {
-    background: #f1f8ff;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #d0e7ff;
-    margin-bottom: 30px;
-}
-.add-form-user h4 { margin-top: 0; margin-bottom: 15px; color: #0056b3; }
-.form-row { display: flex; gap: 15px; margin-bottom: 15px; }
-.form-row input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-.form-row-check { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-.btn-add-user { background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-.btn-add-user:hover { background: #0056b3; }
-
-/* LISTAS (Ciudades) */
+/* Listas (Ciudades) */
 
 .admin-list {
     list-style: none; /* Saca los puntos de la lista */
@@ -141,7 +128,7 @@
 
 .admin-list li {
     display: flex;
-    justify-content: space-between; 
+    justify-content: space-between;
     align-items: center;
     padding: 10px;
     border-bottom: 1px solid #eee; /* Linea divisoria entre items */
@@ -157,11 +144,7 @@
     font-size: 0.9em;
 }
 
-.btn-delete:hover {
-    background: #cc0000;
-}
-
-/* GESTION DE RUTAS */
+/* Gestion de rutas */
 
 .ruta-item {
     margin-bottom: 10px;
@@ -190,8 +173,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px;
-    border-bottom: 1px dashed #ccc;
-    font-size: 0.9em;
+    border-bottom: 1px dashed #ccc; /* Linea punteada divisoria */
 }
 
 .horario-mini-card:last-child {
@@ -218,7 +200,9 @@
     gap: 5px;
 }
 
-/* Edicion en linea de horarios */
+/* Edicion en linea */
+
+/* Formulario que reemplaza al texto al editar */
 .edit-inline-form {
     display: flex;
     align-items: center;
@@ -233,19 +217,20 @@
 }
 
 .edit-inline-form input {
-    width: 80px;
+    width: 80px; /* Ancho fijo para inputs pequeños (hora/precio) */
     padding: 5px;
     border: 1px solid #ced4da;
     border-radius: 3px;
 }
 
+/* Botones pequeños de guardar/cancelar */
 .edit-buttons {
     margin-left: auto; /* Empuja los botones a la derecha */
     display: flex;
     gap: 5px;
 }
 
-/* Botones mini */
+/* Estilos compartidos para botones mini */
 .btn-edit-mini, .btn-save-mini {
     background-color: #ffc107;
     border: none;
@@ -258,7 +243,7 @@
 .btn-save-mini { background-color: #28a745; color: white; }
 
 .btn-delete-mini, .btn-cancel-mini {
-    background-color: #dc3545;
+    background-color: #dc3545; /* Rojo (Borrar/Cancelar) */
     color: white;
     border: none;
     padding: 5px 8px;
@@ -272,12 +257,12 @@
 /* Tabla de usuarios */
 
 .table-responsive {
-    overflow-x: auto;
+    overflow-x: auto; 
 }
 
 .admin-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: collapse; 
     margin-top: 10px;
 }
 
@@ -285,6 +270,7 @@
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
 }
 
 .admin-table th {
@@ -295,16 +281,59 @@
 
 /* Estilos para inputs dentro de la tabla (modo edicion) */
 .admin-table input[type="text"], 
-.admin-table input[type="email"] {
-    width: 90%;
-    padding: 5px;
+.admin-table input[type="email"],
+.admin-table input[type="password"] {
+    width: 100%;
+    padding: 8px;
     border: 1px solid #ccc;
-    border-radius: 3px;
+    border-radius: 4px;
+    box-sizing: border-box; 
+    color: #333; 
+    background-color: #ffffff; 
+}
+
+/* Contenedor de contraseña */
+
+.password-wrapper {
+    position: relative; /* Esencial para que el ojito se posicione adentro */
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.edit-password-input {
+    padding-right: 35px !important; /* Deja espacio para que el texto no tape el ojo */
+}
+
+/* Boton para visualizar los caracteres de la contraseña */
+.btn-eye {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #666; /* Color gris oscuro para que sea visible */
+    transition: color 0.2s, opacity 0.2s;
+    opacity: 0.7;
+}
+
+.btn-eye:hover {
+    opacity: 1;
+    color: #007bff; /* Cambia a azul al pasar el mouse */
+}
+
+.btn-eye svg {
+    display: block; /* Asegura que el SVG herede el color correctamente */
 }
 
 .actions-cell {
     display: flex;
     gap: 5px;
+    align-items: center;
 }
 
 /* Boton editar */

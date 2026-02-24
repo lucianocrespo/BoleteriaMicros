@@ -1,4 +1,4 @@
-/* LAYOUT PRINCIPAL */
+/* Layout principal */
 
 /* Contenedor que centra la tarjeta de login en toda la pantalla */
 .login-container {
@@ -7,61 +7,108 @@
     align-items: center;
     min-height: 100vh; /* Ocupa toda la altura visible de la ventana */
     padding: 20px; /* Margen de seguridad para telefonos */
-    background-color: #e6f0ff00; /* Fondo transparente (se ve la imagen de fondo) */
+    background-color: #f0f4f800; /* Color de fondo base */
 }
 
 /* Caja blanca que contiene los inputs y botones */
 .login-form-card {
     background: #ffffff;
-    padding: 35px;
-    border-radius: 16px; /* Bordes redondeados */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    border-radius: 12px; /* Bordes redondeados */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     max-width: 400px; /* Ancho maximo en escritorio */
     width: 100%; /* Se adapta en pantallas chicas */
     text-align: center;
+    z-index: 1; /* Asegura que este por encima del fondo */
 }
 
 .login-form-card h2 {
     color: #004d99;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
     font-size: 1.8em;
     font-weight: 700;
 }
 
-/* ELEMENTOS DEL FORMULARIO */
+/* Mensaje de error para credenciales incorrectas */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Elementos del formulario */
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
 
 .login-form label {
-    display: block; /* Ocupa todo el ancho disponible */
-    text-align: left; /* Alinea el texto de la etiqueta a la izquierda */
-    margin-bottom: 20px;
-    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    font-weight: bold;
     color: #333;
 }
 
 .login-form input {
     width: 100%;
     padding: 12px;
-    margin-top: 8px;
+    margin-top: 5px;
     border: 1px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
-    transition: border-color 0.3s; /* Suaviza el cambio de color al hacer clic */
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+    outline: none;
 }
 
 /* Estado cuando el usuario hace clic en el input */
 .login-form input:focus {
     border-color: #007bff; /* Cambia el borde a azul */
-    outline: none; /* Saca el borde azul por defecto del navegador */
 }
 
-/* BOTONES Y ACCIONES */
+/* Estilos para el enlace de Olvidé mi contraseña */
+.link-olvide-pass-container {
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.link-olvide-pass {
+    background: none;
+    border: none;
+    color: #007bff;
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 0;
+    font-weight: 500;
+    transition: color 0.3s;
+    text-decoration: underline;
+}
+
+.link-olvide-pass:hover:not(:disabled) {
+    color: #0056b3; 
+}
+
+.link-olvide-pass:disabled {
+    color: #a0a0a0;
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
+/* Botones y acciones */
 
 /* Contenedor para los botones (Entrar y Registrarse) */
 .login-actions {
-    margin-top: 25px;
     display: flex;
     flex-direction: column; /* Apila los botones uno encima del otro */
-    gap: 15px; /* Espacio entre botones */
+    gap: 10px; /* Espacio entre botones */
 }
 
 /* Estilo base para el boton principal (Entrar) */
@@ -73,33 +120,44 @@
     background-color: #007bff; 
     color: white;
     font-size: 1em;
-    font-weight: 700;
+    font-weight: bold;
     transition: background-color 0.3s;
 }
 
-.btn-entrar:hover {
+.btn-entrar:hover:not(:disabled) {
     background-color: #0056b3; /* Azul mas oscuro al pasar el mouse */
+}
+
+.btn-entrar:disabled {
+    background-color: #99c2ff;
+    cursor: not-allowed;
 }
 
 /* Estilo para el boton secundario (Registrarse) */
 .link-registrar {
-    background: none;
-    border: 2px solid #28a745; 
-    color: #28a745;
-    padding: 10px;
+    background: transparent;
+    border: 1px solid #007bff; 
+    color: #007bff;
+    padding: 12px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1em;
-    font-weight: 600;
+    font-weight: bold;
     transition: background-color 0.3s, color 0.3s;
 }
 
-.link-registrar:hover {
-    background-color: #28a745; /* Fondo verde al pasar el mouse */
+.link-registrar:hover:not(:disabled) {
+    background-color: #007bff; /* Fondo azul al pasar el mouse */
     color: white;
 }
 
-/* IMAGEN DE FONDO */
+.link-registrar:disabled {
+    border-color: #ccc;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Imagen de fondo */
 
 /* Contenedor fijo para la imagen de fondo */
 .imagen {
@@ -121,4 +179,5 @@
     object-fit: cover; /* Escala la imagen para cubrir todo sin deformarse */
     object-position: center; /* Centra la imagen */
     display: block; /* Elimina espacios extra debajo de la imagen */
+    opacity: 0.9; /* Opcional: Oscurece un poco la imagen para que resalte la tarjeta */
 }

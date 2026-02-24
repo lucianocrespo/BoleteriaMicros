@@ -1,4 +1,4 @@
-/* LAYOUT PRINCIPAL Y CONTENEDOR */
+/* Layout principal y contenedor */
 
 /* Contenedor principal que centra la tarjeta en la pantalla */
 .horarios-container {
@@ -10,7 +10,7 @@
     background-color: #f0f8f600; 
 }
 
-/* DISEÑO DE LA TARJETA */
+/* Diseño de la tarjeta */
 
 /* Tarjeta blanca flotante que contiene la informacion */
 .horarios-card {
@@ -29,7 +29,7 @@
     font-weight: 700;
 }
 
-/* SECCIÓN DE RESUMEN DEL VIAJE */
+/* Seccion de resumen del viaje */
 
 /* Caja azul superior con los datos del viaje seleccionado */
 .resumen-viaje {
@@ -48,7 +48,7 @@
     line-height: 1.6; /* Altura de linea para mejor legibilidad */
 }
 
-/* LISTA DE HORARIOS */
+/* Lista de horarios */
 
 .tabla-horarios ul {
     list-style: none;
@@ -91,7 +91,7 @@
     margin-top: 4px;
 }
 
-/* BOTONES DE ACCION */
+/* Bototnes de accion */
 
 /* Estilos base compartidos para botones */
 .btn-seleccionar,
@@ -127,7 +127,7 @@
     background-color: #5a6268;
 }
 
-/* ESTADOS Y ELEMENTOS DE FONDO */
+/* Estados y elementos de fondo */
 
 /* Cajas de mensaje para estados vacios o de carga */
 .loading-message, .no-data-message {

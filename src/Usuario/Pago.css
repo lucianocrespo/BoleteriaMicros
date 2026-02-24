@@ -1,4 +1,4 @@
-/* LAYOUT PRINCIPAL */
+/* Layout principal */
 
 /* Contenedor que centra la tarjeta de pago vertical y horizontalmente */
 .pago-container {
@@ -21,7 +21,7 @@
     text-align: center;
 }
 
-/* HEADER Y CRONÓMETRO */
+/* Header y cronometro */
 
 /* Cabecera que contiene el titulo y el reloj alineados a los extremos */
 .pago-header {
@@ -44,7 +44,7 @@
     background-color: #e3f2fd;
     color: #007bff;
     padding: 5px 10px;
-    border-radius: 20px; /* Forma de redondeada */
+    border-radius: 20px; /* Forma redondeada */
     font-weight: 700;
     font-size: 1.1em;
     border: 1px solid #90caf9;
@@ -65,7 +65,7 @@
     100% { transform: scale(1); }
 }
 
-/* RESUMEN DEL VIAJE */
+/* Resumen del viaje */
 
 .resumen-viaje {
     background-color: #e6f7ff;
@@ -85,7 +85,12 @@
     margin-bottom: 10px;
 }
 
-/* FORMULARIO Y GRID */
+.total-abonar {
+    color: #28a745;
+    font-size: 1.2em;
+}
+
+/* Formulario y grid */
 
 .pago-form label {
     display: block;
@@ -102,16 +107,17 @@
     border: 1px solid #ccc;
     border-radius: 8px;
     box-sizing: border-box;
+    font-size: 1em;
 }
 
-/* GRID DE 2 COLUMNAS: Usado para poner la Fecha y el CVV uno al lado del otro */
+/* Grid de 2 columnas: para poner la Fecha y el CVV uno al lado del otro */
 .grid-2-cols {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
 }
 
-/* BOTONES Y MENSAJES */
+/* Botones y mensajes */
 
 .pago-actions {
     margin-top: 25px;
@@ -121,7 +127,8 @@
 }
 
 .btn-pagar,
-.btn-volver {
+.btn-volver,
+.btn-imprimir {
     padding: 12px;
     border: none;
     border-radius: 8px;
@@ -149,6 +156,15 @@
     background-color: #5a6268;
 }
 
+.btn-imprimir {
+    background-color: #17a2b8; 
+    color: white;
+}
+
+.btn-imprimir:hover {
+    background-color: #138496;
+}
+
 /* Mensajes de éxito o error */
 .mensaje-pago {
     padding: 10px;
@@ -169,7 +185,64 @@
     color: #721c24; /* Rojo error */
 }
 
-/* IMAGEN DE FONDO */
+/* Diseño del ticket y estilos de impresion */
+
+.ticket-generado {
+    text-align: center;
+}
+
+#area-impresion {
+    border: 2px dashed #ccc;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: left;
+    background-color: #fff;
+}
+
+#area-impresion h2 {
+    text-align: center;
+    margin: 0 0 15px 0;
+    color: #004d99;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+}
+
+#area-impresion p {
+    margin: 8px 0;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.ticket-hora {
+    margin-left: 15px;
+}
+
+.ticket-total {
+    text-align: right;
+    margin: 15px 0 0 0;
+    color: #28a745;
+}
+
+/* Ocultar todo lo demás al imprimir */
+@media print {
+    body * { 
+        visibility: hidden; 
+    }
+    #area-impresion, #area-impresion * { 
+        visibility: visible; 
+    }
+    #area-impresion { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        border: none; 
+        padding: 0; 
+    }
+}
+
+/* Imagen de fondo */
 
 .imagen {
     display: flex;

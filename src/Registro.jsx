@@ -8,11 +8,11 @@ import './Registro.css';
 import microruta from './assets/Imagenes/microruta.png';
 
 const Registro = () => {
-    // Estados para los campos del formulario
+    // Estados para los campos del formulario (eliminamos 'usuario')
     const [nombre, setNombre] = useState('');
     const [mail, setMail] = useState('');
-    const [usuario, setUsuario] = useState('');
     const [contrasena, setContrasena] = useState('');
+    
     // Estados de control de interfaz
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -22,8 +22,8 @@ const Registro = () => {
         e.preventDefault();
         setError('');
         
-        // Validacion simple de campos vacios
-        if (!nombre || !mail || !usuario || !contrasena) {
+        // Validacion simple de campos vacios (ya no pedimos usuario)
+        if (!nombre || !mail || !contrasena) {
             setError('⚠️ Por favor, complete todos los campos.');
             return;
         }
@@ -31,8 +31,7 @@ const Registro = () => {
         setLoading(true); // Bloqueamos el boton para evitar multiples envios
 
         try {
-            // Crear la credencial de acceso (Email/Password) en Firebase Auth
-            // (Esto crea el usuario seguro en el sistema, pero NO guarda datos extra como el nombre)
+            // Crear la credencial de acceso (Email/Password) en Firebase Auth (Esto crea el usuario seguro en el sistema, pero no guarda datos extra como el nombre)
             const userCredential = await createUserWithEmailAndPassword(
                 auth,
                 mail, // Firebase Auth siempre usa el email como identificador
@@ -41,17 +40,12 @@ const Registro = () => {
 
             const user = userCredential.user;
             
-            // PASO 2: Guardar el perfil completo en Firestore (Colección "Usuarios")
-            // Usamos el user.uid como ID del documento para referenciarlo
-
-            // Usamos 'setDoc' en lugar de 'addDoc' para definir nosotros mismos el ID del documento.
-            // Usamos 'user.uid' (generado anteriormente) como la clave del documento.
-
-            await setDoc(doc(db, "Usuarios", user.uid), {
-                uid: user.uid,
+            // Guardar el perfil completo en Firestore (Colección "Usuarios")
+            await setDoc(doc(db, "Usuarios", user.uid), { // Usamos 'setDoc' en lugar de 'addDoc' para definir nosotros mismos el ID del documento.
+                uid: user.uid, // Usamos 'user.uid' (generado anteriormente) como la clave del documento.
                 nombre: nombre,
                 email: mail,
-                usuario: usuario, // Guardamos el nombre de usuario personalizado
+                // Eliminamos la línea que guardaba el usuario
                 esAdmin: false,   // Por defecto, los nuevos usuarios no son administradores
                 fechaRegistro: new Date()
             });
@@ -98,10 +92,7 @@ const Registro = () => {
                         Mail:
                         <input type="email" value={mail} onChange={e => setMail(e.target.value)} placeholder=" Ingrese su Mail" />
                     </label>
-                    <label>
-                        Usuario:
-                        <input type="text" value={usuario} onChange={e => setUsuario(e.target.value)} placeholder=" Ingrese un usuario" />
-                    </label>
+                    {/* Eliminamos el bloque <label> del Usuario */}
                     <label>
                         Contraseña:
                         <input type="password" value={contrasena} onChange={e => setContrasena(e.target.value)} placeholder=" Ingrese una contraseña (mínimo 6 caracteres)" />

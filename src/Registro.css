@@ -1,4 +1,4 @@
-/* LAYOUT PRINCIPAL */
+/* Layout principal */
 
 /* Contenedor que centra el formulario en la pantalla */
 .registro-container {
@@ -10,7 +10,7 @@
     background-color: #f0f4f800; 
 }
 
-/* DISEÑO DE TARJETA */
+/* Diseño de tarjeta */
 
 /* Caja blanca que contiene el formulario */
 .registro-form-card {
@@ -30,7 +30,7 @@
     font-weight: 700;
 }
 
-/* CAMPOS DEL FORMULARIO */
+/* Campos del formulario */
 
 .registro-form label {
     display: block;
@@ -49,7 +49,7 @@
     box-sizing: border-box;
 }
 
-/* BOTONES DE ACCION */
+/* Botones de accion */
 .registro-actions {
     margin-top: 25px;
     display: flex;
@@ -89,7 +89,7 @@
     background-color: #5a6268;
 }
 
-/* MENSAJES DE ERROR */
+/* Mensajes de error */
 
 /* Caja de alerta roja para feedback */
 .error-message {
@@ -102,7 +102,7 @@
     font-weight: 500;
 }
 
-/* FONDO DE PANTALLA */
+/* Fondo de pantalla */
 
 /* Contenedor fijo para la imagen */
 .imagen {

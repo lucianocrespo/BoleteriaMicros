@@ -3,12 +3,13 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB2qIRfdbHftrXF3Irdhuu1xgzppXWZjzQ",
-  authDomain: "boleteria-bec7d.firebaseapp.com",
-  projectId: "boleteria-bec7d",
-  storageBucket: "boleteria-bec7d.firebasestorage.app",
-  messagingSenderId: "851381896189",
-  appId: "1:851381896189:web:5a08dc51f0279893ee0f94"
+  apiKey: "AIzaSyDi7vEhtfEHFBbnyPNwkfUZWWFT_YHkTy4",
+  authDomain: "pruebaboleteria.firebaseapp.com",
+  projectId: "pruebaboleteria",
+  storageBucket: "pruebaboleteria.firebasestorage.app",
+  messagingSenderId: "785060527010",
+  appId: "1:785060527010:web:25adcbd6fa189a07dc90fb",
+  measurementId: "G-5TJ0XFB2YM"
 };
 
 const app = initializeApp(firebaseConfig);

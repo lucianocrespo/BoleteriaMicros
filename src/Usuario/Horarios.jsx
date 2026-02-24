@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // Importamos hooks de navegación:
+import { useLocation, useNavigate } from 'react-router-dom';// Importamos hooks de navegación
 // Importamos la instancia de la base de datos y las funciones de Firestore necesarias
 import { db } from '../firebase-config'; 
 import { doc, getDoc } from 'firebase/firestore'; 
@@ -7,22 +7,22 @@ import { doc, getDoc } from 'firebase/firestore';
 import './Horarios.css';
 import viaje from '../assets/Imagenes/viaje.png';
 
-// Muestra la lista de viajes disponibles basándose en el origen y destino seleccionados
+// Muestra la lista de viajes disponibles basandose en el origen y destino seleccionados
 const Horarios = () => {
-    // Recuperación de datos del estado de navegación
+    // Recuperacion de datos del estado de navegacion
     const location = useLocation();
     const navigate = useNavigate();
     // Extraemos origen, destino y dia. Si no vienen (acceso directo), evitamos errores con || {}
     const { origen, destino, dia } = location.state || {};
     // Estados locales
-    const [horariosData, setHorariosData] = useState({}); // Almacena TODOS los horarios traidos de la BD
+    const [horariosData, setHorariosData] = useState({}); // Almacena todos los horarios traidos de la BD
     const [loading, setLoading] = useState(true); // Controla la visualizacion del mensaje "Cargando..."
 
     // Efecto de Carga de Datos: Se ejecuta una sola vez al montar el componente para traer la informacion de Firestore
     useEffect(() => {
         const getHorariosData = async () => {
             setLoading(true);
-            // Referencia al documento único que contiene todos los horarios
+            // Referencia al documento unico que contiene todos los horarios
             const docRef = doc(db, "config", "horariosData");
             
             try {
@@ -46,18 +46,16 @@ const Horarios = () => {
     }, []); 
 
     // Manejador de Seleccion: se ejecuta cuando el usuario elige un horario especifico
-    const handleSeleccionar = (viaje) => {
-        // 'viaje' es el objeto individual del array: { horario: "08:00", asientosOcupados: "...", precio: "5000" }
-
+    const handleSeleccionar = (viajeItem) => {
         // Navegamos a la pantalla de Asientos pasando todos los datos necesarios para la reserva
         navigate('/asientos', { 
             state: { 
                 origen, 
                 destino, 
                 dia, 
-                horario: viaje.horario, 
-                ocupados: viaje.asientosOcupados || "null", // Si 'asientosOcupados' no existe o es null, pasamos "null" string para evitar errores
-                precio: viaje.precio 
+                horario: viajeItem.horario, 
+                ocupados: viajeItem.asientosOcupados || "null", 
+                precio: viajeItem.precio 
             } 
         });
     };
@@ -68,12 +66,40 @@ const Horarios = () => {
     // Obtenemos el array de viajes especifico para esa ruta. Si no existe, devuelve array vacio
     const horariosDisponibles = horariosData[clave] || [];
 
+    // Logica de filtrado de hora
+    const getHorariosFiltrados = () => {
+        const hoy = new Date();
+        
+        // Formatear la fecha de hoy para compararla con 'dia'
+        const year = hoy.getFullYear();
+        const month = String(hoy.getMonth() + 1).padStart(2, '0');
+        const day = String(hoy.getDate()).padStart(2, '0');
+        const fechaHoy = `${year}-${month}-${day}`;
+
+        // Obtener la hora actual en formato HH:mm
+        const horas = String(hoy.getHours()).padStart(2, '0');
+        const minutos = String(hoy.getMinutes()).padStart(2, '0');
+        const horaActualString = `${horas}:${minutos}`;
+
+        return horariosDisponibles.filter((viajeItem) => {
+            // Si el viaje es hoy, solo se muestran los horarios que sean mayores a la hora actual
+            if (dia === fechaHoy) {
+                return viajeItem.horario > horaActualString;
+            }
+            // Si el viaje es para mañana o despues, se muestran todos los horarios
+            return true;
+        });
+    };
+
+    // Obtenemos la lista final de horarios que si se pueden comprar
+    const horariosFiltrados = getHorariosFiltrados();
+
     return (
         <div className="horarios-container">
             <div className="horarios-card">
                 <h2>Horarios disponibles</h2>
                 
-                {/* Resumen de la búsqueda realizada */}
+                {/* Resumen de la busqueda realizada */}
                 <div className="resumen-viaje">
                     <p>
                         Origen: <strong>{origen}</strong><br />
@@ -87,44 +113,49 @@ const Horarios = () => {
 
                 {!loading && (
                     <div className="tabla-horarios"> 
-                        {horariosDisponibles.length > 0 ? (
+                        
+                        {/* Validamos si existe la ruta */}
+                        {horariosDisponibles.length === 0 ? (
+                            <p className="no-data-message">
+                                No se encontraron rutas para la combinación {origen} a {destino}.
+                            </p>
+                            
+                        /* Validamos si existen viajes pero se paso la hora */
+                        ) : horariosFiltrados.length === 0 ? (
+                            <p className="no-data-message">
+                                No hay viajes disponibles para ese día.
+                            </p>
+                            
+                        /* Validamos que hay viajes disponibles y los mostramos iterando la lista filtrada */
+                        ) : (
                             <ul>
-                                {/* Iteramos sobre los viajes encontrados */}
-                                {horariosDisponibles.map((viaje, index) => (
-                                    // Usamos una key única combinando horario e índice
+                                {horariosFiltrados.map((viajeItem, index) => (
                                     <li key={index}>
-
-                                        {/* Información del viaje (Hora y Precio) */}
                                         <div className="viaje-info">
-                                            <span className="viaje-hora">{viaje.horario}</span>
+                                            <span className="viaje-hora">{viajeItem.horario}</span>
                                             <span className="viaje-precio">
-                                                {viaje.precio ? `$${viaje.precio}` : 'Consultar'} {/* Mostramos el precio o 'Consultar' si no está definido */}
+                                                {viajeItem.precio ? `$${viajeItem.precio}` : 'Consultar'}
                                             </span>
                                         </div>
                                         
-                                        {/* Boton de accion */}
                                         <button 
                                             className="btn-seleccionar" 
-                                            onClick={() => handleSeleccionar(viaje)} 
+                                            onClick={() => handleSeleccionar(viajeItem)} 
                                         >
                                             Seleccionar
                                         </button>
                                     </li>
                                 ))}
                             </ul>
-                        ) : (
-                            // Mensaje si no hay rutas para la combinacion Origen-Destino
-                            <p className="no-data-message">
-                                No se encontraron horarios para la ruta {origen} a {destino}.
-                            </p>
                         )}
+                        
                     </div>
                 )}
                 
                 <button 
                     type="button" 
                     className="btn-volver" 
-                    onClick={() => navigate(-1)} // Navega hacia atras en el historial
+                    onClick={() => navigate(-1)} 
                 >
                     Volver
                 </button>

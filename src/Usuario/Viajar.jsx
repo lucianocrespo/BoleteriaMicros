@@ -54,6 +54,19 @@ function Viajar() {
             setError('⚠️ Por favor, complete todos los campos.');
             return; // Detiene la ejecucion aca si falta algo
         }
+
+        // Validacion estricta de ciudades
+        // Verificamos que lo que el usuario escribio (o selecciono) exista realmente en el array de ciudades.
+        if (!ciudades.includes(origen.trim())) {
+            setError(`⚠️ La ciudad de origen "${origen}" no es válida o fue eliminada.`);
+            return;
+        }
+
+        if (!ciudades.includes(destino.trim())) {
+            setError(`⚠️ La ciudad de destino "${destino}" no es válida o fue eliminada.`);
+            return;
+        }
+
         // Validacion extra: Asegurarse de que no sea una fecha pasada manualmente
         if (dia < hoy) {
             setError('⚠️ Elija una fecha válida.');

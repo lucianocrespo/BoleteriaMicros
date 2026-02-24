@@ -1,4 +1,4 @@
-/* VARIABLES Y TEMATIZACION */
+/* Variables y tematizacion */
 
 :root {
     --color-tarjeta: #3e5f94de;
@@ -8,7 +8,7 @@
     --sombra-sutil: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
-/* LAYOUT PRINCIPAL Y FONDO */
+/* Layout principal y fondo */
 
 /* Fondo de la Pantalla Principal */
 .menu-viaje-container {
@@ -31,9 +31,9 @@
     color: var(--color-tarjeta); 
 }
 
-/* ENCABEZADO (HEADER) */
+/* Encabezado */
 
-/* Header: Contenedor para el boton de cerrar sesion */
+/* Contenedor para el boton de cerrar sesion */
 .menu-viaje-header {
     display: flex;
     justify-content: flex-end; /* Alinea el contenido a la derecha */
@@ -42,7 +42,7 @@
     background: rgba(0, 0, 0, 0.1); /* Fondo ligeramente transparente */
 }
 
-/* CONTENIDO CENTRAL */
+/* Contenido central */
 
 /* Contenido Principal: Centra la tarjeta y los botones */
 .menu-viaje-main {
@@ -78,7 +78,7 @@
     line-height: 1.4;
 }
 
-/* BOTONERA PRINCIPAL */
+/* Botonera principal */
 
 /* Contenedor para alinear los botones horizontalmente */
 .acciones-menu {
@@ -128,7 +128,7 @@
     transform: translateY(-2px); 
 }
 
-/* BOTON DE CERRAR SESION */
+/* Boton de cerrar sesion */
 
 /* Boton pequeño y rojo para salir */
 .btn-logout-menu {
@@ -148,7 +148,7 @@
     background-color: #c82333;  /* Rojo mas oscuro */
 }
 
-/* IMAGEN DE FONDO */
+/* Imagen de fondo */
 
 .imagen {
     display: flex;
