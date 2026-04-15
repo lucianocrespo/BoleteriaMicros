@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+// Importamos funciones de Firebase
 import { db, auth } from '../firebase-config';
 import { collection, query, where, getDocs, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
+// Importamos estilos e imagen
 import './MisBoletos.css';
 import provbagoogleearth from '../assets/Imagenes/provbagoogleearth.png'; 
 
@@ -10,6 +11,9 @@ const MisBoletos = () => {
     // Estados para almacenar la lista de boletos y el estado de carga
     const [boletos, setBoletos] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // Se guarda que boleto se quiere imprimir
+    const [boletoImpresion, setBoletoImpresion] = useState(null); 
     const navigate = useNavigate();
 
     // determinamos si el viaje es pasado (Fecha Viaje < Fecha Actual)
@@ -26,7 +30,7 @@ const MisBoletos = () => {
         const fetchBoletos = async () => {
             setLoading(true);
             try {
-                const user = auth.currentUser; // Verificamos que haya un usuario autenticado
+                const user = auth.currentUser; 
                 if (!user) {
                     console.log("No hay usuario logueado");
                     setLoading(false);
@@ -34,12 +38,12 @@ const MisBoletos = () => {
                 }
 
                 // Creamos la consulta a la coleccion "boletos"
-                const q = query(collection(db, "boletos"), where("uidUsuario", "==", user.uid)); // Filtramos por "uidUsuario" para traer solo los boletos del usuario actual
+                const q = query(collection(db, "boletos"), where("uidUsuario", "==", user.uid)); 
                 const querySnapshot = await getDocs(q);
                 
                 // Transformamos los documentos de Firestore a un array de objetos
                 const boletosData = querySnapshot.docs.map(doc => ({
-                    id: doc.id, // Guardamos el ID del documento para poder borrarlo luego
+                    id: doc.id, 
                     ...doc.data()
                 }));
                 
@@ -57,6 +61,17 @@ const MisBoletos = () => {
 
         fetchBoletos();
     }, []);
+
+    // Logica para activar la impresion en React
+    const handleImprimir = (boleto) => {
+        setBoletoImpresion(boleto);
+        
+        // Le damos 100ms a React para que dibuje el componente oculto antes de llamar a la impresora
+        setTimeout(() => {
+            window.print();
+            setBoletoImpresion(null); // Borramos el estado para que la web vuelva a la normalidad
+        }, 100);
+    };
 
     // Funcion de cancelacion del boleto (se borra el boleto y se libera el asiento ocupado)
     const handleCancelar = async (boleto) => {
@@ -98,7 +113,7 @@ const MisBoletos = () => {
                             ? viaje.asientosOcupados[boleto.dia].split(',').map(s => parseInt(s.trim()))
                             : [];
                         
-                        // Filtramos el array para excluir el asiento que estamos cancelando
+                            // Filtramos el array para excluir el asiento que estamos cancelando
                         ocupadosArray = ocupadosArray.filter(a => a !== boleto.asiento);
                         
                         // Si quedan asientos, guardamos el nuevo string actualizado en esa fecha.
@@ -113,7 +128,6 @@ const MisBoletos = () => {
 
                         // Actualizamos la base de datos
                         await updateDoc(configRef, { horarios: horariosMap });
-                        console.log(`Asiento liberado correctamente para el día ${boleto.dia}.`);
                     }
                 }
             }
@@ -132,6 +146,8 @@ const MisBoletos = () => {
 
     return (
         <div className="mis-boletos-container">
+            
+            {/* Interfaz normal de la pantalla */}
             <h2>Mis Boletos</h2>
             
             <div className="mis-boletos-content">
@@ -161,12 +177,20 @@ const MisBoletos = () => {
                                 {esViajePasado ? (
                                     <div className="etiqueta-finalizado">✅ Viaje Finalizado</div>
                                 ) : (
-                                    <button 
-                                        className="btn-cancelar"
-                                        onClick={() => handleCancelar(boleto)}
-                                    >
-                                        Cancelar Boleto
-                                    </button>
+                                    <div className="boleto-acciones">
+                                        <button 
+                                            className="btn-imprimir"
+                                            onClick={() => handleImprimir(boleto)}
+                                        >
+                                            🖨️ Imprimir
+                                        </button>
+                                        <button 
+                                            className="btn-cancelar"
+                                            onClick={() => handleCancelar(boleto)}
+                                        >
+                                            Cancelar Boleto
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         );
@@ -186,9 +210,44 @@ const MisBoletos = () => {
             </div>
             
             {/* Imagen decorativa de fondo */}
-             <div className="imagen">
+            <div className="imagen">
                 <img src={provbagoogleearth} alt="Imagen de Viaje" />
             </div>
+
+            {/* Area de impresion */}
+            {boletoImpresion && (
+                <div className="print-only">
+                    <div className="ticket-impresion">
+                        <div className="ticket-impresion-header">
+                            <h2>🎟️ Boleto de Viaje</h2>
+                            <p className="ticket-impresion-id">ID: {boletoImpresion.id}</p>
+                        </div>
+                        <div className="ticket-impresion-info-row">
+                            <span><strong>Pasajero:</strong></span>
+                            <span>{boletoImpresion.nombrePasajero || 'Tú'}</span>
+                        </div>
+                        <div className="ticket-impresion-info-row">
+                            <span><strong>Ruta:</strong></span>
+                            <span>{boletoImpresion.origen} ➝ {boletoImpresion.destino}</span>
+                        </div>
+                        <div className="ticket-impresion-info-row">
+                            <span><strong>Fecha:</strong></span>
+                            <span>{boletoImpresion.dia}</span>
+                        </div>
+                        <div className="ticket-impresion-info-row">
+                            <span><strong>Hora:</strong></span>
+                            <span>{boletoImpresion.horario}</span>
+                        </div>
+                        <div className="ticket-impresion-info-row">
+                            <span><strong>Asiento:</strong></span>
+                            <span>#{boletoImpresion.asiento}</span>
+                        </div>
+                        <div className="ticket-impresion-footer">
+                            Este boleto es válido únicamente para la fecha y hora indicadas.
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </div>
     );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';// Importamos hooks de navegación
+import { useLocation, useNavigate } from 'react-router-dom';// Importamos hooks de navegacion
 // Importamos la instancia de la base de datos y las funciones de Firestore necesarias
 import { db } from '../firebase-config'; 
 import { doc, getDoc } from 'firebase/firestore'; 

@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase-config'; // Importamos la DB
 import { doc, getDoc } from 'firebase/firestore'; // Importamos funciones de Firestore
-// Importamos estilos e imagen
 import './Viajar.css';
 import viaje from '../assets/Imagenes/viaje.png';
 
 function Viajar() {
-    // Estados del formulario
-    const [origen, setOrigen] = useState('');
-    const [destino, setDestino] = useState('');
-    const [dia, setDia] = useState('');
+    // Estados del formulario 
+    // En lugar de empezar vacios (''), intentan leer primero de la memoria de la sesion (para no perder lo ingresado al volver atras)
+    const [origen, setOrigen] = useState(() => sessionStorage.getItem('viaje_origen') || '');
+    const [destino, setDestino] = useState(() => sessionStorage.getItem('viaje_destino') || '');
+    const [dia, setDia] = useState(() => sessionStorage.getItem('viaje_dia') || '');
+    
     // Estados de datos y UI
     const [ciudades, setCiudades] = useState([]); // Estado para la lista de ciudades
     const [error, setError] = useState('');
@@ -19,10 +20,17 @@ function Viajar() {
     const navigate = useNavigate();
     const hoy = new Date().toISOString().split('T')[0]; // Fecha actual, para que no se puedan elegir dias anteriores
 
+    // Guardamos los datos en la memoria de la sesion cada vez que el usuario escribe algo
+    useEffect(() => {
+        sessionStorage.setItem('viaje_origen', origen);
+        sessionStorage.setItem('viaje_destino', destino);
+        sessionStorage.setItem('viaje_dia', dia);
+    }, [origen, destino, dia]);
+
     // Carga inicial de ciudades desde Firestore
     useEffect(() => {
         const getCiudades = async () => {
-            // Referencia al documento 'ciudades' en la colección 'config'
+            // Referencia al documento 'ciudades' en la coleccion 'config'
             const docRef = doc(db, "config", "ciudades");
             try {
                 const docSnap = await getDoc(docRef);
@@ -67,7 +75,7 @@ function Viajar() {
             return;
         }
 
-        // Validacion extra: Asegurarse de que no sea una fecha pasada manualmente
+        // Validacion extra: asegurarse de que no sea una fecha pasada manualmente
         if (dia < hoy) {
             setError('⚠️ Elija una fecha válida.');
             return;
@@ -125,6 +133,6 @@ function Viajar() {
             </div>
         </div>
     );
-};
+}
 
 export default Viajar;

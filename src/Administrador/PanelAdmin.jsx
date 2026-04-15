@@ -13,11 +13,11 @@ const PanelAdmin = () => {
     const navigate = useNavigate();
 
     // Control de UI: Pestaña activa y estado de carga global
-    const [activeTab, setActiveTab] = useState('ciudades'); 
+    const [activeTab, setActiveTab] = useState('ciudades');
     const [loading, setLoading] = useState(false);
 
     // Estado para el ID del administrador logueado
-    const [adminUid, setAdminUid] = useState(null); 
+    const [adminUid, setAdminUid] = useState(null);
 
     // Estado para mostrar/ocultar contraseña
     const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +30,7 @@ const PanelAdmin = () => {
     const [rutas, setRutas] = useState({});
     const [nuevaRutaOrigen, setNuevaRutaOrigen] = useState('');
     const [nuevaRutaDestino, setNuevaRutaDestino] = useState('');
-    
+
     // Estado para edición de horarios
     const [editingSchedule, setEditingSchedule] = useState(null);
 
@@ -39,17 +39,22 @@ const PanelAdmin = () => {
     const [editingUserId, setEditingUserId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
 
-    // Carga inicial de datos y escucha de autenticación
+    // Estados para boletos activos y Filtros
+    const [boletos, setBoletos] = useState([]);
+    const [filtroOrigen, setFiltroOrigen] = useState('');
+    const [filtroDestino, setFiltroDestino] = useState('');
+    const [filtroFecha, setFiltroFecha] = useState('');
+
+    // Carga inicial de datos y escucha de autenticacion
     useEffect(() => {
         cargarDatosGenerales();
         cargarUsuarios();
+        cargarBoletos(); // Cargamos los boletos al iniciar
 
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                setAdminUid(user.uid);
-            }
+            if (user) setAdminUid(user.uid);
         });
-        
+
         return () => unsubscribe();
     }, []);
 
@@ -82,21 +87,111 @@ const PanelAdmin = () => {
         } catch (error) { console.error(error); }
     };
 
+    // Cargar lista de boletos activos
+
+    const cargarBoletos = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, "boletos"));
+            const boletosList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Ordenamos los boletos por fecha y hora de viaje (los más próximos primero)
+            boletosList.sort((a, b) => new Date(`${a.dia}T${a.horario}`) - new Date(`${b.dia}T${b.horario}`));
+            setBoletos(boletosList);
+        } catch (error) {
+            console.error("Error al cargar boletos:", error);
+        }
+    };
+
+    // Cancelar un boleto desde el panel de admin
+
+    const handleCancelarBoletoAdmin = async (boleto) => {
+        // Doble confirmacion de seguridad
+        if (!window.confirm(`⚠️ ATENCIÓN: ¿Seguro que desea CANCELAR el pasaje de ${boleto.nombrePasajero || 'este usuario'} a ${boleto.destino}?`)) {
+            return;
+        }
+        try {
+            setLoading(true);
+            // Borramos el comprobante de la coleccion 'boletos'
+            await deleteDoc(doc(db, "boletos", boleto.id));
+            // Buscamos el viaje en 'horariosData' para liberar el asiento
+            const claveRuta = `${boleto.origen}-${boleto.destino}`;
+            const configRef = doc(db, "config", "horariosData");
+            const configSnap = await getDoc(configRef);
+
+            if (configSnap.exists()) {
+                const horariosMap = configSnap.data().horarios;
+                const viajesParaRuta = horariosMap[claveRuta];
+                if (viajesParaRuta) {
+                    const viajeIndex = viajesParaRuta.findIndex(v => v.horario === boleto.horario);
+                    if (viajeIndex !== -1) {
+                        const viaje = viajesParaRuta[viajeIndex];
+                        if (typeof viaje.asientosOcupados === 'string') viaje.asientosOcupados = {};
+                        if (!viaje.asientosOcupados) viaje.asientosOcupados = {};
+                        // Traemos el array de ocupados de ese dia especifico
+                        let ocupadosArray = viaje.asientosOcupados[boleto.dia]
+                            ? viaje.asientosOcupados[boleto.dia].split(',').map(s => parseInt(s.trim()))
+                            : [];
+                        // Sacamos el asiento de la lista
+                        ocupadosArray = ocupadosArray.filter(a => a !== boleto.asiento);
+                        // Guardamos o limpiamos el campo
+                        if (ocupadosArray.length > 0) {
+                            viaje.asientosOcupados[boleto.dia] = ocupadosArray.join(', ');
+                        } else {
+                            delete viaje.asientosOcupados[boleto.dia];
+                        }
+                        horariosMap[claveRuta][viajeIndex] = viaje;
+                        // Mandamos la info actualizada a la BD
+                        await updateDoc(configRef, { horarios: horariosMap });
+                    }
+                }
+            }
+            // Lo sacamos de la tabla visualmente
+            setBoletos(prevBoletos => prevBoletos.filter(b => b.id !== boleto.id));
+            alert("✅ Boleto cancelado exitosamente y asiento liberado.");
+
+        } catch (error) {
+            console.error("Error al cancelar el boleto:", error);
+            alert("Hubo un error al intentar cancelar el boleto.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    // Logica de filtrado para boletos activos
+
+    const obtenerBoletosFiltrados = () => {
+        const ahora = new Date();
+        return boletos.filter(boleto => {
+
+            // Descartar boletos de viajes que ya pasaron
+            if (!boleto.dia || !boleto.horario) return false;
+            const fechaViaje = new Date(`${boleto.dia}T${boleto.horario}`);
+            if (fechaViaje < ahora) return false;
+
+            // Aplicar filtros del administrador
+            if (filtroOrigen && boleto.origen !== filtroOrigen) return false;
+            if (filtroDestino && boleto.destino !== filtroDestino) return false;
+            if (filtroFecha && boleto.dia !== filtroFecha) return false;
+
+            return true;
+        });
+    };
+    const boletosActivosFiltrados = obtenerBoletosFiltrados();
+
     // Logica de horarios
 
     // Prepara el estado para editar un horario especifico dentro de una ruta
     const iniciarEdicionHorario = (rutaKey, index, horarioData) => {
-        setEditingSchedule({
-            rutaKey, // La clave del mapa (ej: "Trenque Lauquen-Buenos Aires")
-            index, // La posición en el array de horarios
-            data: { ...horarioData } // Copia de los datos para no mutar estado directamente
-        });
+        setEditingSchedule({ 
+             rutaKey, // La clave del mapa (ej: "Trenque Lauquen-Buenos Aires")
+             index, // La posición en el array de horarios
+             data: { ...horarioData } // Copia de los datos para no mutar estado directamente
+            });
     };
-
-    const cancelarEdicionHorario = () => {
+    const cancelarEdicionHorario = () => { // Limpiamos el estado de edicion
         setEditingSchedule(null);
     };
-
     /* Guarda los cambios de un horario.
        Hay un pequeño problema: Firestore no permite actualizar un indice especifico de un array directamente.
        Solucion: Leemos el array, lo modificamos localmente y reescribimos el array completo para esa clave.
@@ -108,13 +203,12 @@ const PanelAdmin = () => {
         // Validar formato HH:MM
         const regexHorario = /^([01]\d|2[0-3]):([0-5]\d)$/;
         if (!regexHorario.test(data.horario)) {
-            alert("El formato debe ser HH:MM (ejemplo: 08:30).");
-            return;
+            alert("El formato debe ser HH:MM (ejemplo: 08:30)."); return;
         }
 
         const precioNum = parseFloat(data.precio);
         if (isNaN(precioNum) || precioNum < 0) {
-            alert("El precio debe ser un número positivo.");
+            alert("El precio debe ser un número positivo."); 
             return;
         }
 
@@ -122,7 +216,7 @@ const PanelAdmin = () => {
             // Copia profunda del array de horarios de esa ruta
             const nuevosHorariosRuta = [...rutas[rutaKey]];
             // Actualizamos el objeto en el índice especifico
-            nuevosHorariosRuta[index] = { 
+            nuevosHorariosRuta[index] = {
                 ...nuevosHorariosRuta[index], // Mantenemos datos que no se editan (como asientosOcupados)
                 horario: data.horario,
                 precio: precioNum.toString()
@@ -130,17 +224,16 @@ const PanelAdmin = () => {
 
             // Actualizamos en Firestore usando notacion de punto para claves dinamicas
             const docRef = doc(db, "config", "horariosData");
-            await updateDoc(docRef, {
-                [`horarios.${rutaKey}`]: nuevosHorariosRuta
+            await updateDoc(docRef, { 
+                [`horarios.${rutaKey}`]: nuevosHorariosRuta 
             });
 
             // Actualizamos el estado local para reflejar cambios sin recargar
             setRutas({ ...rutas, [rutaKey]: nuevosHorariosRuta });
             setEditingSchedule(null);
             alert("Horario actualizado con éxito.");
-        } catch (error) {
-            console.error(error);
-            alert("Ocurrió un error al guardar.");
+        } catch (error) { 
+            console.error(error); alert("Ocurrió un error al guardar."); 
         }
     };
 
@@ -156,14 +249,9 @@ const PanelAdmin = () => {
     };
 
     const agregarRuta = async () => {
-        if (!nuevaRutaOrigen || !nuevaRutaDestino) {
-            alert("Seleccione origen y destino.");
-            return;
-        }
-        if (nuevaRutaOrigen === nuevaRutaDestino) {
-            alert("Origen y destino no pueden ser iguales.");
-            return;
-        }
+        if (!nuevaRutaOrigen || !nuevaRutaDestino) { alert("Seleccione origen y destino."); return; }
+        if (nuevaRutaOrigen === nuevaRutaDestino) { alert("Origen y destino no pueden ser iguales."); return; }
+
         // Creamos la clave compuesta que usa el sistema
         const nombreRuta = `${nuevaRutaOrigen}-${nuevaRutaDestino}`;
         try {
@@ -188,9 +276,9 @@ const PanelAdmin = () => {
 
     const iniciarEdicionUsuario = (usuario) => {
         setEditingUserId(usuario.id);
-        setEditFormData({
-            nombre: usuario.nombre || '',
-            esAdmin: usuario.esAdmin || false,
+        setEditFormData({ 
+            nombre: usuario.nombre || '', 
+            esAdmin: usuario.esAdmin || false, 
             nuevaContrasena: '' 
         });
         setShowPassword(false);
@@ -200,23 +288,23 @@ const PanelAdmin = () => {
         try {
             // Cambio de contraseña propia
             if (id === auth.currentUser?.uid && editFormData.nuevaContrasena) {
-                if (editFormData.nuevaContrasena.length < 6) {
-                    alert("La contraseña debe tener al menos 6 caracteres.");
-                    return;
+                if (editFormData.nuevaContrasena.length < 6) { 
+                    alert("La contraseña debe tener al menos 6 caracteres."); 
+                    return; 
                 }
                 try {
                     await updatePassword(auth.currentUser, editFormData.nuevaContrasena);
-                } catch (error) {
-                    alert("Error de seguridad: " + error.message);
-                    return;
+                } catch (error) { 
+                    alert("Error de seguridad: " + error.message); 
+                    return; 
                 }
             }
 
             const userRef = doc(db, "Usuarios", id);
             // updateDoc solo modifica los campos enviados, no sobrescribe todo el documento
-            await updateDoc(userRef, {
-                nombre: editFormData.nombre,
-                esAdmin: editFormData.esAdmin
+            await updateDoc(userRef, { 
+                nombre: editFormData.nombre, 
+                esAdmin: editFormData.esAdmin 
             });
             setUsuarios(usuarios.map(u => (u.id === id ? { ...u, ...editFormData } : u)));
             setEditingUserId(null);
@@ -230,9 +318,9 @@ const PanelAdmin = () => {
     const agregarCiudad = async () => {
         if(!nuevaCiudad.trim()) return;
         const ciudadNormalizada = nuevaCiudad.trim().toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-        if (ciudades.some(c => c.toLowerCase() === ciudadNormalizada.toLowerCase())) {
-            alert("La ciudad ya existe.");
-            return;
+        if (ciudades.some(c => c.toLowerCase() === ciudadNormalizada.toLowerCase())) { 
+            alert("La ciudad ya existe."); 
+            return; 
         }
         try {
             await updateDoc(doc(db, "config", "ciudades"), { lista: arrayUnion(ciudadNormalizada) });
@@ -244,7 +332,7 @@ const PanelAdmin = () => {
         if(!window.confirm(`¿Seguro que desea eliminar la ciudad ${c} y TODAS sus rutas asociadas?`)) return;
         try {
             await updateDoc(doc(db, "config", "ciudades"), { lista: arrayRemove(c) });
-            
+
             // Borrado en cascada de rutas
             const rutasAEliminar = Object.keys(rutas).filter(rutaKey => {
                 const [origen, destino] = rutaKey.split('-');
@@ -254,8 +342,8 @@ const PanelAdmin = () => {
             if (rutasAEliminar.length > 0) {
                 const docRef = doc(db, "config", "horariosData");
                 const updates = {};
-                rutasAEliminar.forEach(rutaKey => {
-                    updates[`horarios.${rutaKey}`] = deleteField();
+                rutasAEliminar.forEach(rutaKey => { 
+                    updates[`horarios.${rutaKey}`] = deleteField(); 
                 });
                 await updateDoc(docRef, updates);
             }
@@ -263,6 +351,7 @@ const PanelAdmin = () => {
         } catch(e) { console.error(e); }
     };
 
+    // Cierre de sesion
     const cerrarSesion = () => { auth.signOut(); navigate('/'); };
 
     return (
@@ -276,10 +365,11 @@ const PanelAdmin = () => {
                 <button className={activeTab === 'ciudades' ? 'active' : ''} onClick={() => setActiveTab('ciudades')}>Ciudades</button>
                 <button className={activeTab === 'horarios' ? 'active' : ''} onClick={() => setActiveTab('horarios')}>Horarios y Rutas</button>
                 <button className={activeTab === 'usuarios' ? 'active' : ''} onClick={() => setActiveTab('usuarios')}>Usuarios</button>
+                <button className={activeTab === 'boletos' ? 'active' : ''} onClick={() => setActiveTab('boletos')}>Boletos Activos</button>
             </div>
 
             <div className="admin-content">
-                {loading && <p>Cargando datos...</p>}
+                {loading && <p className="text-center">Cargando datos...</p>}
 
                 {/* Pestaña Ciudades */}
                 {!loading && activeTab === 'ciudades' && (
@@ -356,8 +446,8 @@ const PanelAdmin = () => {
                                     <tr>
                                         <th>Email</th>
                                         <th>Nombre</th>
-                                        <th style={{ textAlign: 'center' }}>Admin</th>
-                                        <th style={{ textAlign: 'center' }}>Acciones</th>
+                                        <th className="text-center">Admin</th>
+                                        <th className="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -369,26 +459,26 @@ const PanelAdmin = () => {
                                                 {editingUserId === user.id ? (
                                                     <>
                                                         <td>
-                                                            <label style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', fontWeight: 'bold', fontSize: '0.8em' }}>
+                                                            <label className="edit-label">
                                                                 <span>Nombre:</span>
                                                                 <input type="text" value={editFormData.nombre || ''} onChange={(e) => setEditFormData({...editFormData, nombre: e.target.value})} />
                                                             </label>
                                                         </td>
-                                                        <td style={{ textAlign: 'center' }}>
-                                                            <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', fontWeight: 'bold', fontSize: '0.8em' }}>
+                                                        <td className="text-center">
+                                                            <label className="edit-label-center">
                                                                 <span>¿Es Admin?</span>
                                                                 <input type="checkbox" checked={editFormData.esAdmin || false} onChange={(e) => setEditFormData({...editFormData, esAdmin: e.target.checked})} />
                                                             </label>
                                                         </td>
-                                                        <td className="actions-cell" style={{ justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                        <td className="actions-cell centered-wrap">
                                                             {esMiUsuario && (
-                                                                <label style={{ width: '100%', display: 'flex', flexDirection: 'column', textAlign: 'left', fontWeight: 'bold', fontSize: '0.8em', marginBottom: '10px' }}>
+                                                                <label className="edit-label-full">
                                                                     <span>Contraseña:</span>
                                                                     <div className="password-wrapper">
-                                                                        <input 
-                                                                            type={showPassword ? "text" : "password"} 
-                                                                            placeholder="Nueva contraseña..." 
-                                                                            value={editFormData.nuevaContrasena || ''} 
+                                                                        <input
+                                                                            type={showPassword ? "text" : "password"}
+                                                                            placeholder="Nueva contraseña..."
+                                                                            value={editFormData.nuevaContrasena || ''}
                                                                             onChange={(e) => setEditFormData({...editFormData, nuevaContrasena: e.target.value})}
                                                                             className="edit-password-input"
                                                                         />
@@ -402,7 +492,7 @@ const PanelAdmin = () => {
                                                                     </div>
                                                                 </label>
                                                             )}
-                                                            <div style={{ display: 'flex', gap: '5px', width: '100%', justifyContent: 'center' }}>
+                                                            <div className="edit-actions-centered">
                                                                 <button onClick={() => guardarUsuarioEdit(user.id)} className="btn-save">Guardar</button>
                                                                 <button onClick={() => {setEditingUserId(null); setEditFormData({}); setShowPassword(false);}} className="btn-cancel">Cancelar</button>
                                                             </div>
@@ -411,8 +501,8 @@ const PanelAdmin = () => {
                                                 ) : (
                                                     <>
                                                         <td>{user.nombre}</td>
-                                                        <td style={{ textAlign: 'center' }}>{user.esAdmin ? '✅' : '❌'}</td>
-                                                        <td className="actions-cell" style={{ justifyContent: 'center' }}>
+                                                        <td className="text-center">{user.esAdmin ? '✅' : '❌'}</td>
+                                                        <td className="actions-cell centered">
                                                             <button onClick={() => iniciarEdicionUsuario(user)} className="btn-edit">Editar</button>
                                                             <button onClick={() => handleEliminarUsuario(user.id)} className="btn-delete">Eliminar</button>
                                                         </td>
@@ -421,6 +511,75 @@ const PanelAdmin = () => {
                                             </tr>
                                         );
                                     })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* Pestaña boletos activos */}
+                {!loading && activeTab === 'boletos' && (
+                    <div className="tab-section">
+                        <h3>Pasajes Pagados Activos</h3>
+
+                        {/* Barra de Filtros */}
+                        <div className="filtros-bar">
+                            <select value={filtroOrigen} onChange={(e) => setFiltroOrigen(e.target.value)}>
+                                <option value="">Todos los Orígenes</option>
+                                {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <select value={filtroDestino} onChange={(e) => setFiltroDestino(e.target.value)}>
+                                <option value="">Todos los Destinos</option>
+                                {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <input
+                                type="date"
+                                value={filtroFecha}
+                                onChange={(e) => setFiltroFecha(e.target.value)}
+                                title="Filtrar por fecha"
+                            />
+                            <button
+                                className="btn-limpiar-filtros"
+                                onClick={() => { setFiltroOrigen(''); setFiltroDestino(''); setFiltroFecha(''); }} >Limpiar</button>
+                        </div>
+
+                        {/* Tabla de Resultados */}
+                        <div className="table-responsive">
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID Boleto</th>
+                                        <th>Pasajero</th>
+                                        <th>Ruta</th>
+                                        <th>Fecha y Hora</th>
+                                        <th className="text-center">Asiento</th>
+                                        <th className="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {boletosActivosFiltrados.length > 0 ? (
+                                        boletosActivosFiltrados.map(boleto => (
+                                            <tr key={boleto.id}>
+                                                <td className="td-monospace">{boleto.id}</td>
+                                                <td><strong>{boleto.nombrePasajero || 'Sin Nombre'}</strong></td>
+                                                <td>{boleto.origen} ➝ {boleto.destino}</td>
+                                                <td>{boleto.dia} - {boleto.horario} hs</td>
+                                                <td className="text-center-bold">#{boleto.asiento}</td>
+                                                <td className="text-center">
+                                                    <button
+                                                        className="btn-delete-mini"
+                                                        onClick={() => handleCancelarBoletoAdmin(boleto)} >Cancelar
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="td-empty-message">
+                                                No se encontraron pasajes activos con los filtros seleccionados.
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>

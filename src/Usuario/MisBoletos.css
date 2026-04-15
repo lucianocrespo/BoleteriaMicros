@@ -49,7 +49,7 @@
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12); /* Aumenta la sombra */
 }
 
-/* Título de la ruta (Origen -> Destino) */
+/* Titulo de la ruta (Origen -> Destino) */
 .boleto-ruta {
     margin: 0;
     color: #007bff;
@@ -91,6 +91,14 @@
 
 /* Botones de accion */
 
+/* Contenedor para alinear los botones del boleto */
+.boleto-acciones {
+    display: flex;
+    justify-content: flex-end; /* Alinea los botones a la derecha */
+    gap: 10px; /* Espacio entre los botones */
+    margin-top: 15px;
+}
+
 /* Estilo del boton cancelar */
 .btn-cancelar {
     background-color: #fff;
@@ -101,8 +109,6 @@
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9em;
-    margin-top: 10px;
-    align-self: flex-end; /* Alinear a la derecha */
     transition: all 0.2s;
 }
 
@@ -111,7 +117,35 @@
     color: white; /* Invierte colores al hover */
 }
 
-/* Boton de Volver */
+/* Estilo del boton de imprimir */
+.btn-imprimir {
+    background-color: #28a745; /* Verde para indicar acción positiva */
+    color: white;
+    border: 1px solid #28a745;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9em;
+    transition: all 0.2s;
+}
+
+.btn-imprimir:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Para pantallas de celulares: Los botones ocupan el 100% del ancho */
+@media (max-width: 480px) {
+    .boleto-acciones {
+        flex-direction: column;
+    }
+    .btn-cancelar, .btn-imprimir {
+        width: 100%;
+    }
+}
+
+/* Boton de Volver al menú principal */
 .btn-volver-menu {
     background-color:  white;
     color: #007bff;
@@ -197,4 +231,79 @@
     object-fit: cover;
     object-position: center;
     display: block;
+} 
+
+/* Estilos de impresion */
+.print-only {
+    display: none;
+}
+
+@media print {
+    /* Ocultamos toda la pagina web */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Hacemos visible solo nuestro boleto de impresion y sus hijos */
+    .print-only, .print-only * {
+        visibility: visible;
+    }
+    
+    /* Posicionamos el boleto arriba a la izquierda para que ocupe la hoja */
+    .print-only {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    /* Estilos especificos para que el boleto se vea bien*/
+    .ticket-impresion {
+        border: 2px dashed #007bff;
+        padding: 30px;
+        max-width: 500px;
+        margin: 0 auto;
+        border-radius: 10px;
+        color: #333;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: white;
+    }
+
+    .ticket-impresion-header {
+        text-align: center;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .ticket-impresion-header h2 {
+        margin: 0;
+        color: #004d99;
+    }
+
+    .ticket-impresion-id {
+        margin: 5px 0 0 0;
+        color: #666;
+    }
+
+    .ticket-impresion-info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .ticket-impresion-info-row strong {
+        color: #555;
+    }
+
+    .ticket-impresion-footer {
+        text-align: center;
+        margin-top: 30px;
+        font-size: 12px;
+        color: #888;
+        border-top: 1px solid #eee;
+        padding-top: 10px;
+    }
 }

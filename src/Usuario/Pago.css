@@ -165,7 +165,7 @@
     background-color: #138496;
 }
 
-/* Mensajes de éxito o error */
+/* Mensajes de exito o error */
 .mensaje-pago {
     padding: 10px;
     border-radius: 5px;
@@ -224,7 +224,7 @@
     color: #28a745;
 }
 
-/* Ocultar todo lo demás al imprimir */
+/* Ocultar todo lo demas al imprimir */
 @media print {
     body * { 
         visibility: hidden; 

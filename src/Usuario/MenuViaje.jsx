@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom'; // Importamos useNavigate de react-router-dom, es fundamental para cambiar de pantalla mediante codigo
-import { auth } from '../firebase-config'; // Importamos auth para poder cerrar sesión
+import { auth } from '../firebase-config'; // Importamos auth para poder cerrar sesion
 // Importamos estilos e imagen
 import './MenuViaje.css';
 import provbagoogleearth from '../assets/Imagenes/provbagoogleearth.png';
 
-// Componente MenuViaje
+// Componente MenuViaje:
  // Es la pantalla principal que ve el usuario autenticado.
  // Ofrece acceso rápido a las funciones principales: Comprar un boleto o ver el historial de compras.
 

@@ -154,7 +154,7 @@ const InicializarDB = () => {
             // Creacion del usuario administrador real en Firebase Auth
             setStatus('3/5 Creando cuenta de Administrador Maestro...');
             const adminEmail = "admin@boleteria.com";
-            const adminPass = "admin123456";
+            const adminPass = "admin123";
             let adminUid = "";
 
             try {
@@ -190,7 +190,7 @@ const InicializarDB = () => {
                 destino: "Buenos Aires",
                 dia: fechaEjemplo, 
                 horario: "08:00",
-                asiento: 1,
+                asiento: 14,
                 nombrePasajero: "Pasajero Ejemplo",
                 fechaCompra: new Date().toISOString()
             });

@@ -73,12 +73,12 @@ function Asientos() {
         setAsientoSeleccionado(asientoId === asientoSeleccionado ? null : asientoId);
     };
 
-    // Al dar clic en "Continuar", actualizamos la base de datos para marcar el asiento como ocupado ANTES de ir al pago, evitando que dos personas compren el mismo
+    // Al dar clic en "Continuar", actualizamos la base de datos para marcar el asiento como ocupado antes de ir al pago, evitando que dos personas compren el mismo
     const handleContinuar = async () => {
         if (!asientoSeleccionado) return; // Validacion de seguridad
         setLoading(true);
 
-        const claveRuta = `${origen}-${destino}`; // Clave única para encontrar la ruta en el mapa de horarios
+        const claveRuta = `${origen}-${destino}`; // Clave unica para encontrar la ruta en el mapa de horarios
 
         try {
             const docRef = doc(db, "config", "horariosData"); // Referencia al documento global de horarios
@@ -173,10 +173,10 @@ function Asientos() {
                     {LAYOUT_ASIENTOS.map(asiento => (
                         <button
                             key={asiento.id}
-                            className={`asiento-btn ${getAsientoClase(asiento.id)}`} // Asignamos clase dinámica
+                            className={`asiento-btn ${getAsientoClase(asiento.id)}`} // Asignamos clase dinamica
                             onClick={() => handleSeleccionarAsiento(asiento.id)}
-                            disabled={asientosOcupados.includes(asiento.id) || loading} // Deshabilitamos si está ocupado o si se está procesando la reserva
-                            // Estilo en línea para ubicarlo en el Grid
+                            disabled={asientosOcupados.includes(asiento.id) || loading} // Deshabilitamos si esta ocupado o si se esta procesando la reserva
+                            // Estilo en linea para ubicarlo en el Grid
                             style={{
                                 gridColumn: asiento.gridCol,
                                 gridRow: asiento.gridRow

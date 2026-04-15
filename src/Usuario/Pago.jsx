@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // Importamos hooks de React Router para navegacion y recibir datos entre pantallas
-import { db, auth } from '../firebase-config'; // Importamos la conexion a Firebase y el servicio de autenticacion
+import { useLocation, useNavigate } from 'react-router-dom';
+import { db, auth } from '../firebase-config'; 
 import { doc, getDoc, updateDoc, addDoc, collection } from 'firebase/firestore'; 
-// Importamos estilos e imagen
 import './Pago.css';
 import viaje from '../assets/Imagenes/viaje.png';
 
@@ -36,7 +35,7 @@ function Pago() {
         reservaInfo.current = { origen, destino, dia, horario, asiento };
     }, [origen, destino, dia, horario, asiento]);
 
-    // Función para liberar el asiento si el usuario abandona la compra
+    // Funcion para liberar el asiento si el usuario abandona la compra
     const liberarAsientoManual = async () => {
         if (pagoExitosoRef.current || reservaLiberadaRef.current) return;
         
@@ -86,7 +85,7 @@ function Pago() {
         }
     };
 
-    // Efecto de montaje y desmontaje inteligente (Anti-StrictMode y Browser Back) (para evitar el bloqueo del asiento al volver atras en el navegador)
+    // Efecto de montaje y desmontaje inteligente (Anti-StrictMode y Browser Back)
     useEffect(() => {
         pagoMountCount++;
 
@@ -102,7 +101,6 @@ function Pago() {
             pagoMountCount--;
             window.removeEventListener('beforeunload', handleBeforeUnload);
             
-            // Si el componente se desmonta de verdad (no por StrictMode), liberamos el asiento
             setTimeout(() => {
                 if (pagoMountCount === 0 && !pagoExitosoRef.current && !reservaLiberadaRef.current) {
                     liberarAsientoManual();
@@ -135,41 +133,48 @@ function Pago() {
         return `${m}:${s < 10 ? '0' : ''}${s}`;
     };
 
-    // Accion cuando se acaba el tiempo
     const handleTimeout = async () => {
         if (pagoExitosoRef.current) return;
         setMensaje("⏳ Tiempo agotado. Tu reserva ha sido liberada.");
         setLoading(true); 
         await liberarAsientoManual(); 
-        setTimeout(() => navigate(-1), 3000); // Redirigimos al la pagina anterior despues de 3 segundos para que el usuario lea el mensaje
+        setTimeout(() => navigate(-1), 3000); 
     };
 
     const handleVolver = async () => {
-        // Si ya pago, "volver" regresa a la pantalla anterior sin borrar nada
         if (pagoExitosoRef.current) {
             navigate(-1);
             return;
         }
-        // Si no pago, le advertimos que perdera su reserva
         if (window.confirm("¿Seguro que quieres volver? Se perderá tu reserva del asiento.")) {
             setLoading(true);
-            await liberarAsientoManual(); // Borramos la reserva
+            await liberarAsientoManual(); 
             navigate(-1); 
         }
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // Previene la recarga de la pagina
+        e.preventDefault(); 
+        
+        // Validacion manual extra de seguridad (por si falla el HTML5)
+        if (numeroTarjeta.length < 16) {
+            setMensaje("El número de tarjeta debe tener exactamente 16 dígitos.");
+            return;
+        }
+        if (codigoSeguridad.length < 3) {
+            setMensaje("El CVV debe tener exactamente 3 dígitos.");
+            return;
+        }
+
         setLoading(true);
         setMensaje('');
 
         // Simulamos el proceso de pago
         setTimeout(async () => {
             try {
-                const user = auth.currentUser; // Obtenemos el usuario que inicio sesion
+                const user = auth.currentUser; 
                 
                 if (user) {
-                    // Guardamos el boleto en la base de datos
                     await addDoc(collection(db, "boletos"), {
                         uidUsuario: user.uid,
                         origen, destino, dia, horario, asiento,
@@ -179,7 +184,6 @@ function Pago() {
                     });
                 } 
 
-                // Confirmacion de pago exitoso
                 pagoExitosoRef.current = true; 
                 setMensaje('¡Pago realizado con éxito! Tu boleto ha sido generado.');
                 setPagoCompletado(true);
@@ -196,18 +200,15 @@ function Pago() {
     return (
         <div className="pago-container">
             <div className="pago-card">
-                {/* Encabezado con Cronometro */}
                 <div className="pago-header">
                     <h2>Formulario de Pago</h2>
                     {!pagoCompletado && (
-                        /* El estilo cambia a rojo si queda menos de 1 minuto */
                         <div className={`timer-box ${segundosRestantes < 60 ? 'timer-danger' : ''}`}>
                             ⏱️ {formatoTiempo(segundosRestantes)}
                         </div>
                     )}
                 </div>
                 
-                {/* Mensajes de exito o error */}
                 {mensaje && (
                     <div className={`mensaje-pago ${mensaje.includes('éxito') ? 'success' : 'error'}`}>
                         {mensaje}
@@ -216,7 +217,6 @@ function Pago() {
                 
                 {pagoCompletado ? (
                     <div className="ticket-generado">
-                        {/* Parte a imprimir */}
                         <div id="area-impresion">
                             <h2>🎟️ Boleto de Viaje</h2>
                             <p><strong>Pasajero:</strong> {nombre}</p>
@@ -238,36 +238,69 @@ function Pago() {
                     </div>
                 ) : !mensaje.includes('agotado') && (
                     <>
-                        {/* Resumen del viaje */}
                         <div className="resumen-viaje">
-                            <h4>Resumen de tu Reserva</h4>
-                            <div className="resumen-detalles">
-                                <p>Ruta: <strong>{origen} → {destino}</strong></p>
-                                <p>Fecha: <strong>{dia}</strong></p>
-                                <p>Hora: <strong>{horario} hs</strong></p>
-                                <p>Asiento: <strong>#{asiento}</strong></p>
-                                <p>Total a pagar: <strong className="total-abonar">${precio || '0'}</strong></p>
-                            </div>
+                            <h4>Reserva Temporal</h4>
+                            <p>
+                                Origen: <strong>{origen}</strong><br /> Destino: <strong>{destino}</strong><br />
+                                Fecha: <strong>{dia}</strong> a las <strong>{horario} hs</strong><br />
+                                Asiento Reservado: <strong>#{asiento}</strong><br />
+                                Total a Abonar: <strong className="total-abonar">${precio || '0'}</strong>
+                            </p>
                         </div>
-
                         <form className="pago-form" onSubmit={handleSubmit}>
                             <label>
-                                <span>Nombre del Titular:</span>
-                                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} required placeholder="Como figura en la tarjeta" />
+                                <span>Nombre en la tarjeta:</span>
+                                <input 
+                                    type="text" 
+                                    value={nombre} 
+                                    onChange={(e) => setNombre(e.target.value)} 
+                                    required 
+                                    placeholder="Nombre del titular" 
+                                    minLength="3"
+                                    pattern="[A-Za-z\s]+"
+                                    title="Solo se permiten letras y espacios."
+                                />
                             </label>
                             <label>
-                                <span>Número de Tarjeta:</span>
-                                <input type="text" value={numeroTarjeta} onChange={(e) => setNumeroTarjeta(e.target.value.replace(/\D/g, ''))} required placeholder="1234 1234 1234 1234" maxLength="16" />
+                                <span>Número de tarjeta:</span>
+                                {/* minLength y pattern estricto para 16 digitos en el numero de la tarjeta */}
+                                <input 
+                                    type="text" 
+                                    value={numeroTarjeta} 
+                                    onChange={(e) => setNumeroTarjeta(e.target.value.replace(/\D/g, ''))} 
+                                    required 
+                                    placeholder="1234123412341234" 
+                                    maxLength="16" 
+                                    minLength="16"
+                                    pattern="\d{16}"
+                                    title="Debe ingresar exactamente 16 números."
+                                />
                             </label>
                             
                             <div className="grid-2-cols">
                                 <label>
                                     <span>Vencimiento:</span>
-                                    <input type="month" value={fechaExpiracion} onChange={(e) => setFechaExpiracion(e.target.value)} required />
+                                    <input 
+                                        type="month" 
+                                        value={fechaExpiracion} 
+                                        onChange={(e) => setFechaExpiracion(e.target.value)} 
+                                        required 
+                                    />
                                 </label>
                                 <label>
                                     <span>CVV:</span>
-                                    <input type="text" value={codigoSeguridad} onChange={(e) => setCodigoSeguridad(e.target.value.replace(/\D/g, ''))} required placeholder="123" maxLength="3" />
+                                    {/* minLength y pattern estricto para 3 digitos en el CVV */}
+                                    <input 
+                                        type="text" 
+                                        value={codigoSeguridad} 
+                                        onChange={(e) => setCodigoSeguridad(e.target.value.replace(/\D/g, ''))} 
+                                        required 
+                                        placeholder="123" 
+                                        maxLength="3" 
+                                        minLength="3"
+                                        pattern="\d{3}"
+                                        title="Debe ingresar exactamente 3 números."
+                                    />
                                 </label>
                             </div>
                             
@@ -283,9 +316,8 @@ function Pago() {
                     </>
                 )}
             </div>
-            {/* Imagen decorativa de fondo */}
             <div className="imagen">
-                <img src={viaje} alt="Imagen decorativa de viaje" />
+                <img src={viaje} alt="Viaje" />
             </div>
         </div>
     );

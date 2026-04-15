@@ -17,13 +17,13 @@
     display: flex; /* Flexbox para estructura vertical */
     flex-direction: column;
     
-    /* Configuración de la imagen de fondo */
+    /* Configuracion de la imagen de fondo */
     background-image: url('./assets/mapa-bsas.jpg'); 
     background-size: cover; /* Escala la imagen para cubrir todo */
     background-position: center center;
     background-repeat: no-repeat;
     
-    /* Efecto de Superposición: Oscurece el mapa para que el texto y el botón resalten */
+    /* Efecto de Superposición: oscurece el mapa para que el texto y el boton resalten */
     background-blend-mode: multiply;
     background-color: rgba(0, 0, 0, 0.5); /* Capa oscura (50% negro) */
     
