@@ -4,14 +4,20 @@
     --color-fondo-page: #f0f2f500; 
     --color-tarjeta: #ffffff; 
     --color-borde: #dbdbdb; 
-    --color-texto: #262626; 
-    --color-input-bg: #4a4a4a; /* Fondo del input para que se distinga bien en el modo claro */
+    --color-texto: #000000; 
+    --color-input-bg: #f5f5f5; /* Fondo del input para que se distinga bien en el modo claro */
     --color-acento: #0095f6;
     --sombra-sutil: 0 4px 12px rgba(0, 0, 0, 0.1);
     
     /* Esta linea permite que el navegador sepa que se soportan ambos modos
        y ajuste automaticamente controles nativos como el calendario */
     color-scheme: light dark;
+}
+
+/* Color de los placeholder */
+.viajar-form input::placeholder {
+    color: var(--color-texto);
+    opacity: 1;
 }
 
 /* Variables modo oscuro (automatico) */

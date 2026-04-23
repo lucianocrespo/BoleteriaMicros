@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { db, auth } from '../firebase-config';
-// Importamos herramientas avanzadas de Firestore:
-// - arrayUnion/arrayRemove: Para agregar/quitar elementos de arrays (como ciudades) sin leer todo el documento.
-// - collection: Para referencias a colecciones completas (necesario para listar usuarios).
+import { useNavigate, BrowserRouter } from 'react-router-dom';
+// Importamos las funciones necesarias de Firestore y Auth
+import { db, auth } from '../firebase-config'; 
 import { doc, getDoc, getDocs, updateDoc, deleteDoc, arrayUnion, arrayRemove, collection, deleteField } from 'firebase/firestore';
-import { updatePassword, onAuthStateChanged } from 'firebase/auth';
+import { updatePassword, onAuthStateChanged, signOut } from 'firebase/auth';
 // Importamos estilos
 import './PanelAdmin.css';
 
@@ -65,7 +63,14 @@ const PanelAdmin = () => {
         setLoading(true);
         try {
             const docCiudades = await getDoc(doc(db, "config", "ciudades"));
-            if (docCiudades.exists()) setCiudades(docCiudades.data().lista || []);
+            if (docCiudades.exists()) {
+                const listaCiudades = docCiudades.data().lista || [];
+                
+                // Ordenamos las ciudades alfabeticamente antes de guardarlas
+                listaCiudades.sort((a, b) => a.localeCompare(b));
+                
+                setCiudades(listaCiudades);
+            }
 
             const docHorarios = await getDoc(doc(db, "config", "horariosData"));
             if (docHorarios.exists()) setRutas(docHorarios.data().horarios || {});
@@ -83,6 +88,10 @@ const PanelAdmin = () => {
         try {
             const querySnapshot = await getDocs(collection(db, "Usuarios"));
             const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // AQUI ORDENAMOS LA LISTA DE USUARIOS POR EMAIL ALFABETICAMENTE
+            usersList.sort((a, b) => (a.email || "").localeCompare(b.email || ""));
+            
             setUsuarios(usersList);
         } catch (error) { console.error(error); }
     };
@@ -403,7 +412,8 @@ const PanelAdmin = () => {
                             <button onClick={agregarRuta} className="btn-add">Crear Ruta</button>
                         </div>
                         <div className="rutas-list">
-                            {Object.keys(rutas).map(rutaKey => (
+                            {/* Ordenamos las rutas (Object.keys) alfabeticamente por origen/destino antes del map */}
+                            {Object.keys(rutas).sort((a, b) => a.localeCompare(b)).map(rutaKey => (
                                 <details key={rutaKey} className="ruta-item" open>
                                     <summary>{rutaKey} ({rutas[rutaKey].length} viajes)</summary>
                                     <div className="ruta-detalles">

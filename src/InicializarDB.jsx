@@ -190,7 +190,7 @@ const InicializarDB = () => {
                 destino: "Buenos Aires",
                 dia: fechaEjemplo, 
                 horario: "08:00",
-                asiento: 14,
+                asiento: 22,
                 nombrePasajero: "Pasajero Ejemplo",
                 fechaCompra: new Date().toISOString()
             });
