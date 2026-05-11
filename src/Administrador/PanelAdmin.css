@@ -113,6 +113,28 @@
     outline: none;
 }
 
+/* Selectores de hora y precio */
+
+/* Hace de color gris el icono del reloj (selector de hora) */
+.add-form input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(0.5); 
+    opacity: 1;
+    display: block;
+}
+
+/* Elimina el recuadro negro del selector numerico y fuerza el fondo blanco */
+.add-form input[type="number"] {
+    color-scheme: light; 
+}
+
+.add-form input[type="number"]::-webkit-inner-spin-button,
+.add-form input[type="number"]::-webkit-outer-spin-button {
+    background-color: #ffffff; 
+    cursor: pointer;
+}
+
+/* Boton de crear ruta */
 .btn-add {
     background: #28a745; /* Verde para acciones positivas (Crear/Agregar) */
     color: white;
@@ -421,4 +443,21 @@
     border-radius: 3px;
     cursor: pointer;
     font-size: 0.9em;
+}
+
+/* Agrupa la etiqueta y el input verticalmente */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Hace que todos los campos midan lo mismo */
+    min-width: 120px;
+}
+
+/* Estilo para los titulitos pequeños encima de los inputs */
+.input-label {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+    text-align: left;
 }

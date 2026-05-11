@@ -24,15 +24,17 @@ const PanelAdmin = () => {
     const [ciudades, setCiudades] = useState([]);
     const [nuevaCiudad, setNuevaCiudad] = useState('');
 
-    // Estados para rutas y horarios
+    // Estados para rutas, horarios y precios
     const [rutas, setRutas] = useState({});
     const [nuevaRutaOrigen, setNuevaRutaOrigen] = useState('');
     const [nuevaRutaDestino, setNuevaRutaDestino] = useState('');
+    const [nuevaRutaHorario, setNuevaRutaHorario] = useState('08:00');
+    const [nuevaRutaPrecio, setNuevaRutaPrecio] = useState('5000');
 
-    // Estado para edición de horarios
+    // Estado para edicion de horarios
     const [editingSchedule, setEditingSchedule] = useState(null);
 
-    // Estados para gestión de usuarios
+    // Estados para gestion de usuarios
     const [usuarios, setUsuarios] = useState([]);
     const [editingUserId, setEditingUserId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
@@ -89,7 +91,7 @@ const PanelAdmin = () => {
             const querySnapshot = await getDocs(collection(db, "Usuarios"));
             const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            // AQUI ORDENAMOS LA LISTA DE USUARIOS POR EMAIL ALFABETICAMENTE
+            // Ordenamos la lista de usuarios alfabeticamente por mail
             usersList.sort((a, b) => (a.email || "").localeCompare(b.email || ""));
             
             setUsuarios(usersList);
@@ -258,20 +260,38 @@ const PanelAdmin = () => {
     };
 
     const agregarRuta = async () => {
-        if (!nuevaRutaOrigen || !nuevaRutaDestino) { alert("Seleccione origen y destino."); return; }
-        if (nuevaRutaOrigen === nuevaRutaDestino) { alert("Origen y destino no pueden ser iguales."); return; }
+    // Validaciones iniciales
+    if (!nuevaRutaOrigen || !nuevaRutaDestino) { alert("Seleccione origen y destino."); return; }
+    if (nuevaRutaOrigen === nuevaRutaDestino) { alert("Origen y destino no pueden ser iguales."); return; }
+    // Validamos horario (time input ya valida formato)
+    if (!nuevaRutaHorario) { alert("Ingrese un horario válido."); return; }
+    // Convertimos y validamos que el precio sea un numero positivo
+    const precioNum = parseFloat(nuevaRutaPrecio);
+    if (isNaN(precioNum) || precioNum < 0) { alert("El precio debe ser un número positivo."); return; }
 
-        // Creamos la clave compuesta que usa el sistema
-        const nombreRuta = `${nuevaRutaOrigen}-${nuevaRutaDestino}`;
-        try {
-            const docRef = doc(db, "config", "horariosData");
-            const horariosExistentes = rutas[nombreRuta] || [];
-            // Agregamos un horario base al array
-            const nuevoArray = [...horariosExistentes, { horario: "08:00", precio: "5000", asientosOcupados: {} }];
-            await updateDoc(docRef, { [`horarios.${nombreRuta}`]: nuevoArray });
-            cargarDatosGenerales();
-        } catch (error) { console.error(error); }
-    };
+    const nombreRuta = `${nuevaRutaOrigen}-${nuevaRutaDestino}`;
+    try {
+        const docRef = doc(db, "config", "horariosData");
+        // Traemos los horarios existentes de esta ruta (si los hay)
+        const horariosExistentes = rutas[nombreRuta] || [];
+        // Usamos los valores ingresados en lugar de los valores por defecto
+        const nuevoArray = [...horariosExistentes, { 
+            horario: nuevaRutaHorario, 
+            precio: precioNum.toString(), 
+            asientosOcupados: {} 
+        }];
+        await updateDoc(docRef, { [`horarios.${nombreRuta}`]: nuevoArray });
+        
+        // Limpiamos los campos despues de crear
+        setNuevaRutaOrigen('');
+        setNuevaRutaDestino('');
+        setNuevaRutaHorario('08:00');
+        setNuevaRutaPrecio('5000');
+        
+        cargarDatosGenerales();
+        alert("✅ Ruta creada exitosamente.");
+    } catch (error) { console.error(error); alert("Error al crear la ruta."); }
+};
 
     // Logica de usuarios
     const handleEliminarUsuario = async (id) => {
@@ -396,21 +416,44 @@ const PanelAdmin = () => {
                     </div>
                 )}
 
-                {/* Pestaña Horarios */}
+                {/* Pestaña Horarios y Rutas */}
                 {!loading && activeTab === 'horarios' && (
                     <div className="tab-section">
                         <h3>Gestión de Rutas</h3>
-                        <div className="add-form">
-                            <select value={nuevaRutaOrigen} onChange={(e) => setNuevaRutaOrigen(e.target.value)}>
-                                <option value="">Origen...</option>
-                                {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                            <select value={nuevaRutaDestino} onChange={(e) => setNuevaRutaDestino(e.target.value)}>
-                                <option value="">Destino...</option>
-                                {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                            <button onClick={agregarRuta} className="btn-add">Crear Ruta</button>
-                        </div>
+                            <div className="add-form" style={{ alignItems: 'flex-end' }}>
+
+                                {/* Input para el origen */}
+                                <div className="input-group">
+                                    <label className="input-label">Origen</label>
+                                    <select value={nuevaRutaOrigen} onChange={(e) => setNuevaRutaOrigen(e.target.value)}>
+                                        <option value="">Seleccione...</option>
+                                        {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+
+                                {/* Input para el destino */}
+                                <div className="input-group">
+                                    <label className="input-label">Destino</label>
+                                    <select value={nuevaRutaDestino} onChange={(e) => setNuevaRutaDestino(e.target.value)}>
+                                        <option value="">Seleccione...</option>
+                                        {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+
+                                {/* Input para el horario */}
+                                <div className="input-group">
+                                    <label className="input-label">Horario</label>
+                                    <input type="time" defaultValue="08:00" />
+                                </div>
+
+                                {/* Input para el precio */}
+                                <div className="input-group">
+                                    <label className="input-label">Precio ($)</label>
+                                    <input type="number" placeholder="Ej: 5000" />
+                                </div>
+
+                                <button onClick={agregarRuta} className="btn-add">Crear Ruta</button>
+                            </div>
                         <div className="rutas-list">
                             {/* Ordenamos las rutas (Object.keys) alfabeticamente por origen/destino antes del map */}
                             {Object.keys(rutas).sort((a, b) => a.localeCompare(b)).map(rutaKey => (
